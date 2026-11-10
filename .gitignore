@@ -1,0 +1,23 @@
+# Dependencies and builds
+node_modules/
+dist/
+
+# Secrets: never commit real keys
+.env
+.env.*
+!.env.example
+
+# Local databases and runtime data
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Editor, OS and tool folders
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+Claude outputs/
