@@ -1,0 +1,13 @@
+{
+  "name": "@tollgate/client",
+  "version": "0.1.0",
+  "description": "Give an AI agent a wallet: a fetch() that pays Tollgate 402 responses automatically.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@tollgate/protocol": "*"
+  }
+}

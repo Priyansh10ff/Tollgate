@@ -71,6 +71,43 @@ CREATE TABLE IF NOT EXISTS topups (
   updated_at       TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+CREATE TABLE IF NOT EXISTS settings (
+  key    TEXT PRIMARY KEY,
+  value  TEXT NOT NULL
+);
+
+-- One row per paid request. payment_key makes paying the same quote twice a no-op.
+CREATE TABLE IF NOT EXISTS receipts (
+  id           TEXT PRIMARY KEY,
+  agent_id     TEXT NOT NULL REFERENCES agents(id),
+  seller_id    TEXT NOT NULL REFERENCES sellers(id),
+  amount       INTEGER NOT NULL,
+  resource     TEXT NOT NULL,
+  url          TEXT NOT NULL,
+  payment_key  TEXT NOT NULL UNIQUE,
+  txn_id       TEXT NOT NULL REFERENCES txns(id),
+  token        TEXT NOT NULL,
+  expires_at   INTEGER NOT NULL,
+  created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS receipts_by_agent ON receipts(agent_id, created_at);
+
+-- Payments above an agent's approval threshold wait here for a human.
+CREATE TABLE IF NOT EXISTS approvals (
+  id           TEXT PRIMARY KEY,
+  agent_id     TEXT NOT NULL REFERENCES agents(id),
+  seller_id    TEXT NOT NULL REFERENCES sellers(id),
+  amount       INTEGER NOT NULL,
+  resource     TEXT NOT NULL,
+  url          TEXT NOT NULL,
+  description  TEXT,
+  quote_hash   TEXT NOT NULL,
+  status       TEXT NOT NULL,
+  expires_at   TEXT NOT NULL,
+  decided_at   TEXT,
+  created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
 CREATE TABLE IF NOT EXISTS payouts (
   id                 TEXT PRIMARY KEY,
   seller_id          TEXT NOT NULL REFERENCES sellers(id),

@@ -1,8 +1,9 @@
 import express, { type NextFunction, type Request, type Response } from "express";
 import { timingSafeEqual, createHash } from "node:crypto";
 import { z } from "zod";
-import { usdToMicros, microsToUsd, MoneyError } from "@tollgate/protocol";
+import { usdToMicros, microsToUsd, MoneyError, WELL_KNOWN_PATH } from "@tollgate/protocol";
 import type { Hub } from "./hub.ts";
+import { publicKeys } from "./keys.ts";
 import { AppError } from "./errors.ts";
 import { PayPalError, PayPalMock } from "./paypal/index.ts";
 import { page, escape } from "./pages.ts";
@@ -50,6 +51,48 @@ export function createApp(hub: Hub) {
   app.get("/health", (_req, res) => {
     res.json({ ok: true, paypalMode: hub.paypal.mode });
   });
+
+  // Sellers fetch this to verify receipts offline.
+  app.get(WELL_KNOWN_PATH, (_req, res) => {
+    res.set("Cache-Control", "public, max-age=300").json(publicKeys(hub.config.hubUrl, hub.signingKey));
+  });
+
+  // ── Agent API (Authorization: Bearer tg_agent_...) ──────────
+
+  const agentApi = express.Router();
+  agentApi.use((req, res, next) => {
+    const key = (req.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const agent = key.startsWith("tg_agent_") ? hub.participants.findAgentByKey(key) : undefined;
+    if (!agent) return next(new AppError(401, "unauthorized", "Missing or invalid agent API key"));
+    res.locals.agent = agent;
+    next();
+  });
+
+  // Pay a seller's quote. Returns a signed receipt, or asks for human approval.
+  agentApi.post("/pay", (req, res) => {
+    const body = z.object({ quote: z.unknown(), approvalId: z.string().optional() }).parse(req.body);
+    const result = hub.payments.pay(res.locals.agent, body.quote, body.approvalId);
+    res.status(result.status === "paid" ? 200 : 202).json(result);
+  });
+
+  agentApi.get("/wallet", (_req, res) => {
+    const agent = res.locals.agent;
+    res.json({
+      agentId: agent.id,
+      name: agent.name,
+      balance: hub.ledger.balance(agent.accountId),
+      spentToday: hub.payments.spentToday(agent),
+      policy: agent.policy,
+    });
+  });
+
+  agentApi.get("/approvals/:id", (req, res) => {
+    const approval = hub.approvals.get(param(req, "id"));
+    if (approval.agentId !== res.locals.agent.id) throw new AppError(404, "not_found", "Approval not found");
+    res.json({ approval });
+  });
+
+  app.use("/v1", agentApi);
 
   // PayPal sends the buyer back here after approving the payment.
   app.get("/paypal/return", async (req, res) => {
@@ -178,6 +221,23 @@ export function createApp(hub: Hub) {
 
   admin.post("/payouts/:id/refresh", async (req, res) => {
     res.json({ payout: await hub.payouts.refresh(param(req, "id")) });
+  });
+
+  admin.get("/approvals", (req, res) => {
+    const status = req.query.status ? (String(req.query.status) as Parameters<typeof hub.approvals.list>[0]) : undefined;
+    res.json({ approvals: hub.approvals.list(status) });
+  });
+
+  admin.post("/approvals/:id/approve", (req, res) => {
+    res.json({ approval: hub.approvals.decide(param(req, "id"), "approved") });
+  });
+
+  admin.post("/approvals/:id/deny", (req, res) => {
+    res.json({ approval: hub.approvals.decide(param(req, "id"), "denied") });
+  });
+
+  admin.get("/receipts", (_req, res) => {
+    res.json({ receipts: hub.payments.recentReceipts() });
   });
 
   admin.get("/ledger/txns", (req, res) => {

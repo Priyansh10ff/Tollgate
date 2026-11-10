@@ -21,6 +21,8 @@ export interface Config {
   feeBps: number;
   /** Smallest amount a seller can withdraw, in micros. */
   minPayoutMicros: number;
+  /** Optional private JWK (JSON) for signing receipts. Otherwise one is generated and stored in the DB. */
+  signingKeyJwk?: string;
 }
 
 export function loadConfig(overrides: Partial<Config> = {}): Config {
@@ -46,6 +48,7 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     paypal: { mode, clientId, clientSecret, apiBase },
     feeBps: Number(env("TOLLGATE_FEE_BPS", "100")),
     minPayoutMicros: 1_000_000,
+    signingKeyJwk: env("HUB_SIGNING_KEY") || undefined,
     ...overrides,
   };
 }

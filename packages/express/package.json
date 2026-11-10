@@ -1,0 +1,16 @@
+{
+  "name": "@tollgate/express",
+  "version": "0.1.0",
+  "description": "Charge AI agents per request: Express middleware for the Tollgate 402 protocol.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@tollgate/protocol": "*"
+  },
+  "peerDependencies": {
+    "express": "^4.18.0 || ^5.0.0"
+  }
+}
