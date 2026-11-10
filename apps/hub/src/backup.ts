@@ -95,6 +95,14 @@ export class Backups {
     return this.running;
   }
 
+  /**
+   * Records what's in the database right now without uploading it. Call after a restore,
+   * so a freshly started server doesn't overwrite a newer backup with the copy it just loaded.
+   */
+  prime() {
+    this.lastHash = this.hashOf(this.takeSnapshot());
+  }
+
   start(intervalMs: number) {
     this.timer = setInterval(() => {
       this.snapshot().catch((err: Error) => this.log(`Backup failed: ${err.message}`));
@@ -110,18 +118,26 @@ export class Backups {
   }
 
   private async doSnapshot() {
-    // VACUUM INTO writes a consistent, compact copy, including anything still in the WAL.
+    const data = this.takeSnapshot();
+    const hash = this.hashOf(data);
+    if (hash === this.lastHash) return;
+    await this.store.put(data);
+    this.lastHash = hash;
+  }
+
+  /** VACUUM INTO writes a consistent, compact copy, including anything still in the WAL. */
+  private takeSnapshot(): Buffer {
     const tmp = join(dirname(this.dbPath === ":memory:" ? join(process.cwd(), "x") : this.dbPath), `.snapshot-${process.pid}.db`);
     rmSync(tmp, { force: true });
     try {
       this.db.exec(`VACUUM INTO '${tmp.replace(/'/g, "''")}'`);
-      const data = readFileSync(tmp);
-      const hash = createHash("sha256").update(data).digest("hex");
-      if (hash === this.lastHash) return;
-      await this.store.put(data);
-      this.lastHash = hash;
+      return readFileSync(tmp);
     } finally {
       rmSync(tmp, { force: true });
     }
+  }
+
+  private hashOf(data: Buffer) {
+    return createHash("sha256").update(data).digest("hex");
   }
 }

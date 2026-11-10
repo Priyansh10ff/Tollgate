@@ -28,6 +28,9 @@ if (store) {
 const hub = createHub(config);
 const app = createApp(hub);
 const backups = store && config.backup ? new Backups(hub.db, config.dbPath, store) : undefined;
+// Only upload once something changes here: during a deploy the old server is still running,
+// and its newer backups must not be replaced by the copy this one just restored.
+backups?.prime();
 backups?.start(config.backup!.intervalSeconds * 1000);
 
 const server = app.listen(config.port, () => {

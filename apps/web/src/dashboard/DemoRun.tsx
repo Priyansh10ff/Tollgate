@@ -136,8 +136,18 @@ export function DemoRun({
           <div>
             <strong>Add money first.</strong> This run spends about {usd(RUN_COST, 2)}; the wallet has {usd(agent.balance, 2)}.
             {demo.sandboxBuyer && (
-              <div className="muted small">
-                PayPal sandbox login: <span className="mono">{demo.sandboxBuyer.email}</span> / <span className="mono">{demo.sandboxBuyer.password}</span> (test money only)
+              <div className="db-sandbox">
+                <div className="small"><strong>PayPal will ask you to log in.</strong> Use this sandbox test account (fake money only):</div>
+                <div className="db-sandbox-row">
+                  <span className="muted small">Email</span>
+                  <span className="mono">{demo.sandboxBuyer.email}</span>
+                  <CopyButton text={demo.sandboxBuyer.email} />
+                </div>
+                <div className="db-sandbox-row">
+                  <span className="muted small">Password</span>
+                  <span className="mono">{demo.sandboxBuyer.password}</span>
+                  <CopyButton text={demo.sandboxBuyer.password} />
+                </div>
               </div>
             )}
           </div>
@@ -176,5 +186,26 @@ export function DemoRun({
         </div>
       )}
     </section>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      className="db-btn soft small"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setDone(true);
+          window.setTimeout(() => setDone(false), 1500);
+        } catch {
+          /* clipboard blocked: the text is selectable */
+        }
+      }}
+    >
+      {done ? "Copied" : "Copy"}
+    </button>
   );
 }

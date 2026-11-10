@@ -243,3 +243,6 @@
 .md th, .md td { text-align: left; padding: 7px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .md th { font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
 .md tbody tr:nth-child(even) { background: #fafafe; }
+.db-sandbox { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.db-sandbox-row { display: grid; grid-template-columns: 70px minmax(0, 1fr) auto; align-items: center; gap: 10px; background: #fff; border-radius: 10px; padding: 6px 8px 6px 12px; }
+.db-sandbox-row .mono { overflow-wrap: anywhere; font-size: 13px; }

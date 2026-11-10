@@ -40,6 +40,12 @@ test("a database survives losing the disk: snapshot, wipe, restore", async () =>
     const backups = new Backups(db, path, store, () => undefined);
     await backups.snapshot();
     assert.equal(store.puts(), 1);
+
+    // A freshly restored server doesn't re-upload the copy it just loaded.
+    const primed = new Backups(db, path, store, () => undefined);
+    primed.prime();
+    await primed.snapshot();
+    assert.equal(store.puts(), 1);
     await backups.snapshot();
     assert.equal(store.puts(), 1, "unchanged data isn't uploaded again");
     db.close();
