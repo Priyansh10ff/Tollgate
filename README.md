@@ -93,6 +93,7 @@ packages/express    seller middleware: tollgate({ price }) for any Express route
 packages/client     agent wallet: a fetch() that pays 402 responses automatically
 packages/mcp        MCP server: gives Claude Desktop and other MCP clients a wallet
 packages/protocol   protocol types, receipt signing and verification, money helpers
+apps/web            website: landing page at / and dashboard at /app (React + Vite)
 apps/demo-api       Atlas Data and QuickLeads, demo sellers using @tollgate/express
 apps/demo-agent     Claude research agent using @tollgate/client
 scripts/            setup checker and command-line tool
@@ -123,16 +124,41 @@ The demo has a hub, two paid APIs and a Claude research agent:
 - **Research Agent**: Claude with a Tollgate wallet. Rules: $2/day, max $1 per request, asks the owner above $0.25, only pays `localhost`.
 
 ```bash
-npm run hub                  # terminal 1: the hub
+npm run hub                  # terminal 1: the hub (first time only, for setup)
 npm run try setup            # terminal 2: create the demo agent and sellers (once)
 npm run try topup 5          # fund the agent's wallet through PayPal
-npm run demo-api             # terminal 2: start Atlas Data and QuickLeads
-npm run agent                # terminal 3: run the research agent
 ```
 
-Once set up, `npm run dev` starts the hub and the demo APIs together.
+Then stop the hub and run everything together:
 
-The agent reads the free catalog, buys a company profile, financials and news for a few cents each, then asks to buy a $0.50 analyst report. That pauses until you run `npm run try approve` (or `deny`). Finally it tries to buy executive contacts from QuickLeads and is blocked by its spending rules. Ask it something else with `npm run agent -- "Is Lumen Health a good investment?"`.
+```bash
+npm run dev                  # terminal 1: hub, demo APIs and website
+npm run agent                # terminal 2: run the research agent
+```
+
+Watch the payments arrive at http://localhost:5173/app.
+
+The agent reads the free catalog, buys a company profile, financials and news for a few cents each, then asks to buy a $0.50 analyst report. That pauses until you approve it in the dashboard (or run `npm run try approve`). Finally it tries to buy executive contacts from QuickLeads and is blocked by its spending rules. Ask it something else with `npm run agent -- "Is Lumen Health a good investment?"`.
+
+## Dashboard
+
+Open `/app` and sign in with your `HUB_ADMIN_TOKEN`. Switch between two views:
+
+- **Owner:** the agent's wallet, today's spend against the daily limit, payments waiting for your approval (Approve / Deny), editable spending rules, and a live timeline. "Add $10 with PayPal" opens a real PayPal sandbox checkout.
+- **Seller:** what agents paid you, earnings by item, and "Cash out via PayPal" (PayPal Payouts, from $1.00).
+
+Everything updates live from the hub's event stream.
+
+```bash
+npm run dev      # hub :4000, demo APIs :4100/:4200, website :5173 (open http://localhost:5173/app)
+```
+
+For production, build the site once and the hub serves it on its own port:
+
+```bash
+npm run build
+npm start        # landing page at http://localhost:4000, dashboard at /app
+```
 
 ## Use the wallet from Claude Desktop (MCP)
 

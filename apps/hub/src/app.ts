@@ -8,6 +8,9 @@ import { AppError } from "./errors.ts";
 import { PayPalError, PayPalMock } from "./paypal/index.ts";
 import { page, escape } from "./pages.ts";
 import type { AgentPolicy } from "./services/participants.ts";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { REPO_ROOT } from "./config.ts";
 
 /**
  * HTTP API. All amounts in JSON are integer micros (1 USD = 1,000,000)
@@ -108,7 +111,7 @@ export function createApp(hub: Hub) {
            <div class="amount">+$${microsToUsd(topup.amount)}</div>
            <p>Added to <strong>${escape(agent.name)}</strong>.</p>
            <p>New balance: <strong>$${microsToUsd(balance)}</strong></p>
-           <p>You can close this tab.</p>`,
+           <a class="btn" href="${escape(hub.config.webUrl)}/app">Back to the dashboard</a>`,
           "ok",
         ),
       );
@@ -162,7 +165,7 @@ export function createApp(hub: Hub) {
     res.json({
       paypalMode: hub.paypal.mode,
       feeBps: hub.config.feeBps,
-      agents: hub.participants.listAgents(),
+      agents: hub.participants.listAgents().map((a) => ({ ...a, spentToday: hub.payments.spentToday(a) })),
       sellers: hub.participants.listSellers(),
       audit: hub.ledger.audit(),
     });
@@ -292,6 +295,15 @@ export function createApp(hub: Hub) {
   });
 
   app.use("/api", admin);
+
+  // ── Website: landing page at /, dashboard at /app ──────────
+  // Served from apps/web/dist after `npm run build`. In development, Vite serves it instead.
+
+  const webDist = join(REPO_ROOT, "apps", "web", "dist");
+  if (existsSync(join(webDist, "index.html"))) {
+    app.use(express.static(webDist, { index: "index.html", maxAge: "1h" }));
+    app.get(/^\/app(\/.*)?$/, (_req, res) => res.sendFile(join(webDist, "index.html")));
+  }
 
   // ── Errors ──────────────────────────────────────────────────
 

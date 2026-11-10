@@ -1,0 +1,27 @@
+:root {
+  --bg: #f7f7fb;
+  --surface: #ffffff;
+  --ink: #121226;
+  --muted: #5a5b72;
+  --line: #e2e1ee;
+  --indigo: #4f46e5;
+  --indigo-ink: #4338ca;
+  --indigo-deep: #312e81;
+  --indigo-soft: #eeeef7;
+  --mint-ink: #047857;
+  --rose: #e11d48;
+  --rose-ink: #be123c;
+  --red-ink: #b91c1c;
+  --serif: "Instrument Serif", Georgia, serif;
+  --sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: var(--indigo-ink); }
+a:hover { color: var(--indigo-deep); }
+button { font: inherit; cursor: pointer; }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, select:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; }
+.mono { font-family: var(--mono); }
+.serif { font-family: var(--serif); font-weight: 400; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

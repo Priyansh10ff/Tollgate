@@ -23,6 +23,8 @@ export interface Config {
   minPayoutMicros: number;
   /** Optional private JWK (JSON) for signing receipts. Otherwise one is generated and stored in the DB. */
   signingKeyJwk?: string;
+  /** Where the website/dashboard is served: the hub itself after `npm run build`, else the Vite dev server. */
+  webUrl: string;
 }
 
 export function loadConfig(overrides: Partial<Config> = {}): Config {
@@ -39,16 +41,19 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     explicitMode || (!clientId || !clientSecret ? "mock" : apiBase.includes("sandbox") ? "sandbox" : "live");
 
   const port = Number(env("PORT") || env("HUB_PORT", "4000"));
+  const hubUrl = env("HUB_URL", `http://localhost:${port}`).replace(/\/+$/, "");
+  const built = existsSync(join(REPO_ROOT, "apps", "web", "dist", "index.html"));
 
   return {
     port,
-    hubUrl: env("HUB_URL", `http://localhost:${port}`).replace(/\/+$/, ""),
+    hubUrl,
     adminToken: env("HUB_ADMIN_TOKEN", "change-me"),
     dbPath: env("DB_PATH", join(REPO_ROOT, "data", "tollgate.db")),
     paypal: { mode, clientId, clientSecret, apiBase },
     feeBps: Number(env("TOLLGATE_FEE_BPS", "100")),
     minPayoutMicros: 1_000_000,
     signingKeyJwk: env("HUB_SIGNING_KEY") || undefined,
+    webUrl: env("WEB_URL", built ? hubUrl : "http://localhost:5173").replace(/\/+$/, ""),
     ...overrides,
   };
 }
