@@ -46,6 +46,9 @@ for (const name of required) {
     problems++;
   }
 }
+if (!env("DEMO_SELLER_PAYPAL_EMAIL")) {
+  warn("DEMO_SELLER_PAYPAL_EMAIL is empty. Set it to a sandbox account email so demo payouts work.");
+}
 if (env("HUB_ADMIN_TOKEN") === "change-me") {
   warn('HUB_ADMIN_TOKEN is still "change-me". Pick your own password before deploying.');
 }

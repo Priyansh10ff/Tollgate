@@ -14,6 +14,9 @@
   ],
   "scripts": {
     "check-setup": "node --import tsx scripts/check-setup.ts",
+    "hub": "npm run dev -w @tollgate/hub",
+    "try": "node --disable-warning=ExperimentalWarning --import tsx scripts/try.ts",
+    "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"packages/*/test/*.test.ts\" \"apps/*/test/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {
