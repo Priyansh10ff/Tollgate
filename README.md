@@ -17,7 +17,7 @@ Sellers add one line to charge agents per request. Agents pay from a PayPal-fund
 ![Tests](https://img.shields.io/badge/tests-44_passing-16a34a)
 [![License: MIT](https://img.shields.io/badge/license-MIT-64748b)](LICENSE)
 
-[**Try it**](#try-it-in-two-minutes) · [**How it works**](#how-it-works) · [**Sellers**](#charge-agents-in-one-line-sellers) · [**Agents**](#give-an-agent-a-wallet) · [**Security**](#security-model) · [**API**](#api)
+[**Try it**](#try-it-in-two-minutes) · [**How it works**](#how-it-works) · [**Sellers**](#charge-agents-in-one-line-sellers) · [**Agents**](#give-an-agent-a-wallet) · [**Security**](#security-model) · [**API**](#api) · [**Postman**](#postman-collection)
 
 <br />
 
@@ -109,7 +109,7 @@ sequenceDiagram
 - **Seller middleware** (`@tollgate/express`): one line per route. Verifies receipts offline with the hub's public key.
 - **Agent wallet** (`@tollgate/client`, `@tollgate/mcp`): a `fetch()` that pays 402s, for code or for Claude Desktop.
 
-**Built with:** TypeScript, Node.js 22 (built-in SQLite), Express, React + Vite, PayPal Orders v2 and Payouts v1, the Claude API, the Model Context Protocol, Ed25519 / JWS receipts, and Supabase Storage for backups.
+**Built with:** TypeScript, Node.js 22 (built-in SQLite), Express, React + Vite, PayPal Orders v2 and Payouts v1, the Claude API, the Model Context Protocol, Ed25519 / JWS receipts, and Supabase Storage for backups. Hosted on Render; API collection for Postman.
 
 ## Charge agents in one line (sellers)
 
@@ -278,6 +278,16 @@ Notes:
 - With `NODE_ENV=production`, the hub refuses to start while `HUB_ADMIN_TOKEN` is `change-me`.
 - The free plan's disk is wiped on every restart, so set `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (free Supabase project): the hub snapshots the SQLite database to Supabase Storage every 20 seconds when something changed and on shutdown, and restores it on startup. It refuses to start if a backup exists but can't be read, so an empty database never overwrites it. Alternatively, attach a persistent disk and set `DB_PATH` to a file on it.
 - Any host that runs Node 22.13+ works the same way: `npm ci --include=dev && npm run build`, then `npm start`.
+
+## Postman collection
+
+[`docs/postman/tollgate.postman_collection.json`](docs/postman/tollgate.postman_collection.json) covers the whole API: sign up, start the live demo, a PayPal sandbox top-up, running the agent, approving its purchase, the ledger overview and a PayPal payout, plus creating your own agents and sellers.
+
+1. In Postman, **Import** the file. `baseUrl` points at the live demo; change it to `http://localhost:4000` for a local hub.
+2. Run **Account → Sign up** first: it saves a session token that the other requests use.
+3. Run **Live demo** top to bottom. The top-up request logs a PayPal link: open it, pay with a sandbox Personal account, then continue.
+
+Or from the command line: `npx newman run docs/postman/tollgate.postman_collection.json`.
 
 ## Use the wallet from Claude Desktop (MCP)
 
