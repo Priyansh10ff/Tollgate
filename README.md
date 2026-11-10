@@ -8,7 +8,48 @@ AI agents browse websites and call APIs all day, but they can't pay for anything
 - **Agents** get a wallet, funded through PayPal, that pays automatically within the spending limits their owner sets.
 - **Tiny payments work** because each charge is recorded in a ledger instead of going through PayPal one by one. Sellers' earnings are paid out in batches with PayPal Payouts.
 
-> 🚧 Work in progress.
+**Live demo: [usetollgate.onrender.com](https://usetollgate.onrender.com)** (PayPal sandbox, so no real money moves). The first load can take up to a minute while the free server wakes up.
+
+![Tollgate landing page](docs/screenshots/landing.jpg)
+
+## Try it in two minutes
+
+1. Open the [live demo](https://usetollgate.onrender.com/app?signup) and create an account with any email.
+2. Click **Start the live demo**. You get a Research Agent with its own wallet and two sellers: Atlas Data (live real-world data) and QuickLeads (a site the agent isn't allowed to pay).
+3. Click **Add $10 with PayPal** and pay with a PayPal **sandbox** account (the demo page shows a test login when one is configured).
+4. Pick a task and click **Run the agent**. Watch Claude buy data for a few cents per request.
+5. When it asks to spend $0.50 on a full report, **Approve** it. Then watch QuickLeads get **blocked** by the spending rules.
+6. Switch to **Seller** and **Cash out via PayPal**: the earnings go out through PayPal Payouts.
+
+| The agent asks before a big purchase | Every step, live |
+|---|---|
+| ![Approval request](docs/screenshots/approval.jpg) | ![Agent run](docs/screenshots/agent-run.jpg) |
+
+| Seller earnings and PayPal payouts | Accounts with private workspaces |
+|---|---|
+| ![Seller view](docs/screenshots/seller.jpg) | ![Sign up](docs/screenshots/sign-up.jpg) |
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Owner(["Agent owner"]) -- "top up" --> PPin["PayPal Orders"]
+  PPin --> Hub
+  Agent["AI agent<br/>(Claude + Tollgate wallet)"] -- "GET /data" --> Seller["Seller API<br/>+ tollgate() middleware"]
+  Seller -- "402 + price quote" --> Agent
+  Agent -- "pay quote" --> Hub["Tollgate hub<br/>rules · ledger · receipts"]
+  Hub -- "signed receipt" --> Agent
+  Agent -- "GET /data + receipt" --> Seller
+  Hub -- "ask if over limit" --> Owner
+  Hub -- "batch payout" --> PPout["PayPal Payouts"]
+  PPout --> SellerOwner(["Seller"])
+```
+
+- **Hub** (`apps/hub`): accounts, agent wallets, spending rules, approvals, the double-entry ledger, Ed25519 receipts, PayPal top-ups and payouts, and the dashboard API.
+- **Seller middleware** (`@tollgate/express`): one line per route. Verifies receipts offline with the hub's public key.
+- **Agent wallet** (`@tollgate/client`, `@tollgate/mcp`): a `fetch()` that pays 402s, for code or for Claude Desktop.
+
+**Built with:** TypeScript, Node.js 22 (built-in SQLite), Express, React + Vite, PayPal Orders v2 and Payouts v1 (sandbox), the Claude API, the Model Context Protocol, Ed25519 / JWS receipts, and Supabase Storage for backups.
 
 ## How it works
 
