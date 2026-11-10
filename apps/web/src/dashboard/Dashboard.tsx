@@ -378,6 +378,7 @@ function Signed({ token, onAuthFail, onSignOut }: { token: string; onAuthFail: (
             payouts={payouts.filter((p) => p.sellerId === seller.id)}
             txns={sellerTxns}
             onPayout={() => act(() => api.payout(seller.id), "Payout sent to PayPal. Its status updates in a few seconds.")}
+            onSaveEmail={(email) => act(() => api.updateSellerEmail(seller.id, email), "PayPal email saved.")}
           />
         ) : (
           <CreateSeller onCreate={createSeller} />

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { usd, type Overview, type Payout, type Seller, type Txn } from "./api";
 import { timeAgo } from "./OwnerView";
 
@@ -8,10 +9,14 @@ interface Props {
   payouts: Payout[];
   txns: Txn[];
   onPayout: () => void;
+  onSaveEmail: (email: string) => Promise<void>;
 }
 
 
-export function SellerView({ overview, seller, onPickSeller, payouts, txns, onPayout }: Props) {
+export function SellerView({ overview, seller, onPickSeller, payouts, txns, onPayout, onSaveEmail }: Props) {
+  const [email, setEmail] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   // Earnings by item, from this seller's side of each charge in the ledger.
   const byItem = new Map<string, number>();
   let requests = 0;
@@ -52,9 +57,27 @@ export function SellerView({ overview, seller, onPickSeller, payouts, txns, onPa
             </div>
             <button type="button" className={`db-btn ${canPay ? "primary glow" : "soft"}`} disabled={!canPay} onClick={onPayout}>Cash out via PayPal</button>
           </div>
-          <div className="muted small cheque-note">
-            {reason || `Sent to ${seller.paypalEmail} through PayPal Payouts. If PayPal rejects it, the money comes back to this balance.`}
-          </div>
+          {!seller.paypalEmail || editing ? (
+            <form
+              className="cheque-email"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setSaving(true);
+                await onSaveEmail(email.trim()).finally(() => setSaving(false));
+                setEditing(false);
+                setEmail("");
+              }}
+            >
+              <input type="email" required placeholder="PayPal email for payouts" value={email} onChange={(e) => setEmail(e.target.value)} aria-label="PayPal email for payouts" />
+              <button type="submit" className="db-btn primary small" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
+              {editing && <button type="button" className="db-btn ghost small" onClick={() => setEditing(false)}>Cancel</button>}
+            </form>
+          ) : (
+            <div className="muted small cheque-note">
+              {reason || `Sent to ${seller.paypalEmail} through PayPal Payouts. If PayPal rejects it, the money comes back to this balance.`}{" "}
+              <button type="button" className="db-linkish" onClick={() => { setEmail(seller.paypalEmail ?? ""); setEditing(true); }}>Change email</button>
+            </div>
+          )}
         </div>
       </div>
 

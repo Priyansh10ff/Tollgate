@@ -194,3 +194,5 @@
 @media (max-width: 1400px) { .db-me { display: none; } }
 
 .db-demo-hint { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; background: var(--indigo-soft); font-size: 14px; }
+.cheque-email { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; position: relative; }
+.cheque-email input { flex: 1; min-width: 200px; font: inherit; font-size: 14px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
