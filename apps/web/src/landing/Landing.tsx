@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Hero, HERO_SCROLL, BOOT_LINES } from "./Hero";
 import { DemoDashboard } from "./DemoDashboard";
+import { Phone } from "./Phone";
 import { useBoot, useScroll, clamp } from "./useScroll";
 import "./landing.css";
 
@@ -136,20 +137,7 @@ export function Landing() {
               </div>
             </div>
             <div className="split reverse">
-              <div className="phone-wrap rv2">
-                <div className="phone">
-                  <div className="phone-screen">
-                    <div className="phone-time">9:41</div>
-                    <div className="notif">
-                      <div className="notif-head"><div className="notif-icon serif">T</div><div className="small strong">Tollgate · now</div></div>
-                      <div className="notif-title">Research Agent wants to spend $0.50</div>
-                      <div className="small muted">Analyst report · Northwind Robotics · Atlas Data</div>
-                      <div className="notif-actions"><span className="na-approve">Approve</span><span className="na-deny">Deny</span></div>
-                    </div>
-                    <div className="notif-muted">Blocked: QuickLeads isn't on the allowed list</div>
-                  </div>
-                </div>
-              </div>
+              <Phone />
               <div className="rv">
                 <div className="kicker mono">FOR OWNERS</div>
                 <h3 className="serif h3">Your agent spends. <em>You decide.</em></h3>
