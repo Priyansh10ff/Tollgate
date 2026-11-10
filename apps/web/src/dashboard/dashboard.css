@@ -229,3 +229,4 @@
 .db-pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--muted); padding: 8px; border-radius: 8px; display: grid; place-items: center; }
 .db-pw-toggle:hover { color: var(--ink); background: #f1f1f8; }
 .db-pw-toggle:focus-visible { outline: 2px solid var(--indigo); outline-offset: 1px; }
+.db-run-note { background: #fff8eb; color: #92400e; border-radius: 12px; padding: 10px 14px; line-height: 1.5; }

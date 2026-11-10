@@ -36,6 +36,10 @@ const server = app.listen(config.port, () => {
   const mode = hub.paypal.mode;
   console.log(`\nTollgate hub running at ${config.hubUrl}`);
   console.log(`PayPal: ${mode === "mock" ? "SIMULATED (no PayPal keys in .env)" : mode}`);
+  const { anthropicApiKey, claudeModel } = config.demo;
+  console.log(
+    `Demo agent: ${anthropicApiKey && claudeModel ? `Claude (${claudeModel})` : `replay only (missing ${[!anthropicApiKey && "ANTHROPIC_API_KEY", !claudeModel && "CLAUDE_MODEL"].filter(Boolean).join(" and ")})`}`,
+  );
   console.log(`Backups: ${store ? `${store.name}, every ${config.backup!.intervalSeconds}s` : "off"}`);
   if (config.adminToken === "change-me") console.log('Warning: HUB_ADMIN_TOKEN is still "change-me"');
   console.log("");

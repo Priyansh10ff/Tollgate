@@ -119,6 +119,12 @@ export function DemoRun({
           </button>
         ))}
       </div>
+      {demo.mode === "replay" && (
+        <div className="db-run-note small">
+          Claude isn't available on this hub right now, so the agent replays a fixed NVIDIA research script with real payments. Your task text is
+          ignored until Claude is back.
+        </div>
+      )}
       <label className="db-field">
         <span>Task</span>
         <textarea value={task} onChange={(e) => setTask(e.target.value)} maxLength={400} rows={2} />
