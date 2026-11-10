@@ -164,6 +164,7 @@ export function createApp(hub: Hub) {
 
   admin.get("/overview", (_req, res) => {
     res.json({
+      hubUrl: hub.config.hubUrl,
       paypalMode: hub.paypal.mode,
       feeBps: hub.config.feeBps,
       agents: hub.participants.listAgents().map((a) => ({ ...a, spentToday: hub.payments.spentToday(a) })),
@@ -284,6 +285,8 @@ export function createApp(hub: Hub) {
   admin.get("/events", (req, res) => {
     res.set({ "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive", "X-Accel-Buffering": "no" });
     res.flushHeaders();
+    // Some proxies (including dev servers) only pass the stream on after the first bytes.
+    res.write(": connected\n\n");
     const send = (event: { id: number; type: string }) => res.write(`id: ${event.id}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
     const lastId = Number(req.get("Last-Event-ID") ?? req.query.after ?? 0) || 0;
     hub.events.history(lastId).forEach(send);

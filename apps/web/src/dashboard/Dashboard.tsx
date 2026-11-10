@@ -107,8 +107,12 @@ function Signed({ token, onAuthFail, onSignOut }: { token: string; onAuthFail: (
     }
   }, [api, onAuthFail]);
 
-  const agent = overview?.agents.find((a) => a.id === agentId) ?? overview?.agents[0];
-  const seller = overview?.sellers.find((s) => s.id === sellerId) ?? overview?.sellers[0];
+  // Default to the newest agent (the one `npm run try setup` just created).
+  const agent = overview?.agents.find((a) => a.id === agentId) ?? overview?.agents.at(-1);
+  const seller =
+    overview?.sellers.find((s) => s.id === sellerId) ??
+    [...(overview?.sellers ?? [])].reverse().find((s) => !!s.paypalEmail) ??
+    overview?.sellers[0];
 
   const loadSellerTxns = useCallback(async () => {
     if (!seller) return;
@@ -245,12 +249,12 @@ function Signed({ token, onAuthFail, onSignOut }: { token: string; onAuthFail: (
           <section id="developers" className="db-card db-dev">
             <h2 className="db-h2">Developers</h2>
             <div className="db-dev-grid">
-              <div><div className="muted small">Hub URL</div><div className="mono">{window.location.origin}</div></div>
+              <div><div className="muted small">Hub URL</div><div className="mono">{overview?.hubUrl ?? window.location.origin}</div></div>
               {agent && <div><div className="muted small">Agent id</div><div className="mono">{agent.id}</div></div>}
               {seller && <div><div className="muted small">Seller id</div><div className="mono">{seller.id}</div></div>}
               <div><div className="muted small">Receipt keys</div><a className="mono" href="/.well-known/tollgate.json" target="_blank" rel="noreferrer">/.well-known/tollgate.json</a></div>
             </div>
-            <pre className="mono db-code">{`app.get("/v1/report",\n  tollgate({ hubUrl: "${window.location.origin}", sellerId: "${seller?.id ?? "slr_..."}", price: "0.03" }),\n  handler);`}</pre>
+            <pre className="mono db-code">{`app.get("/v1/report",\n  tollgate({ hubUrl: "${overview?.hubUrl ?? window.location.origin}", sellerId: "${seller?.id ?? "slr_..."}", price: "0.03" }),\n  handler);`}</pre>
           </section>
         )}
       </main>

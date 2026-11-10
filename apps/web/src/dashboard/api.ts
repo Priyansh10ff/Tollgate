@@ -22,6 +22,7 @@ export interface Seller {
   balance: number;
 }
 export interface Overview {
+  hubUrl?: string;
   paypalMode: "sandbox" | "live" | "mock";
   feeBps: number;
   agents: Agent[];
