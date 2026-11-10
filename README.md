@@ -91,7 +91,10 @@ A PayPal transaction for $0.003 would cost more in fees than the payment itself.
 apps/hub            wallets, ledger, spending rules, receipts, PayPal top-ups and payouts
 packages/express    seller middleware: tollgate({ price }) for any Express route
 packages/client     agent wallet: a fetch() that pays 402 responses automatically
+packages/mcp        MCP server: gives Claude Desktop and other MCP clients a wallet
 packages/protocol   protocol types, receipt signing and verification, money helpers
+apps/demo-api       Atlas Data and QuickLeads, demo sellers using @tollgate/express
+apps/demo-agent     Claude research agent using @tollgate/client
 scripts/            setup checker and command-line tool
 ```
 
@@ -110,6 +113,44 @@ npm run check-setup       # verifies Node, PayPal and Claude settings
 ```
 
 Without PayPal keys, the hub runs with a **simulated PayPal** so you can try everything offline.
+
+## Run the demo
+
+The demo has a hub, two paid APIs and a Claude research agent:
+
+- **Atlas Data** (`localhost:4100`): market data on fictional companies, $0.01–$0.50 per request.
+- **QuickLeads** (`127.0.0.1:4200`): an unvetted "contact list" site the agent is **not** allowed to pay.
+- **Research Agent**: Claude with a Tollgate wallet. Rules: $2/day, max $1 per request, asks the owner above $0.25, only pays `localhost`.
+
+```bash
+npm run hub                  # terminal 1: the hub
+npm run try setup            # terminal 2: create the demo agent and sellers (once)
+npm run try topup 5          # fund the agent's wallet through PayPal
+npm run demo-api             # terminal 2: start Atlas Data and QuickLeads
+npm run agent                # terminal 3: run the research agent
+```
+
+Once set up, `npm run dev` starts the hub and the demo APIs together.
+
+The agent reads the free catalog, buys a company profile, financials and news for a few cents each, then asks to buy a $0.50 analyst report. That pauses until you run `npm run try approve` (or `deny`). Finally it tries to buy executive contacts from QuickLeads and is blocked by its spending rules. Ask it something else with `npm run agent -- "Is Lumen Health a good investment?"`.
+
+## Use the wallet from Claude Desktop (MCP)
+
+`@tollgate/mcp` gives any MCP client two tools: `tollgate_fetch` (fetch a URL, paying if asked) and `tollgate_wallet`. Add this to Claude Desktop's config (Settings → Developer → Edit Config), with your own path to this repo:
+
+```json
+{
+  "mcpServers": {
+    "tollgate": {
+      "command": "node",
+      "args": ["/path/to/tollgate/node_modules/tsx/dist/cli.mjs", "/path/to/tollgate/packages/mcp/src/server.ts"],
+      "env": { "TOLLGATE_HUB_URL": "http://localhost:4000", "TOLLGATE_AGENT_KEY": "tg_agent_..." }
+    }
+  }
+}
+```
+
+Without `TOLLGATE_AGENT_KEY`, it uses the demo agent created by `npm run try setup`.
 
 ## Try the money flow
 

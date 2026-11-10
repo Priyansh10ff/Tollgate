@@ -1,0 +1,20 @@
+{
+  "name": "@tollgate/demo-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Atlas Data: a demo paid API that charges AI agents per request with Tollgate.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "node --import tsx --watch src/server.ts",
+    "start": "node --import tsx src/server.ts"
+  },
+  "dependencies": {
+    "@tollgate/express": "*",
+    "@tollgate/protocol": "*",
+    "express": "^5.1.0"
+  },
+  "exports": {
+    ".": "./src/app.ts"
+  }
+}

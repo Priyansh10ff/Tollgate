@@ -14,13 +14,18 @@
   ],
   "scripts": {
     "check-setup": "node --import tsx scripts/check-setup.ts",
+    "dev": "concurrently -n hub,api -c blue,green \"npm run dev -w @tollgate/hub\" \"npm run dev -w @tollgate/demo-api\"",
     "hub": "npm run dev -w @tollgate/hub",
+    "demo-api": "npm run dev -w @tollgate/demo-api",
+    "agent": "node --import tsx apps/demo-agent/src/cli.ts",
+    "mcp": "node --import tsx packages/mcp/src/server.ts",
     "try": "node --disable-warning=ExperimentalWarning --import tsx scripts/try.ts",
-    "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"packages/*/test/*.test.ts\" \"apps/*/test/*.test.ts\"",
+    "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"packages/*/test/*.test.ts\" \"apps/*/test/*.test.ts\" \"test/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "concurrently": "^9.2.5",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }

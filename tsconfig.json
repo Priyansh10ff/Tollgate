@@ -9,8 +9,19 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["scripts", "packages/*/src", "packages/*/test", "apps/*/src", "apps/*/test"],
-  "exclude": ["apps/dashboard"]
+  "include": [
+    "scripts",
+    "test",
+    "packages/*/src",
+    "packages/*/test",
+    "apps/*/src",
+    "apps/*/test"
+  ],
+  "exclude": [
+    "apps/dashboard"
+  ]
 }

@@ -25,6 +25,7 @@ interface Demo {
   agentKey: string;
   sellerId: string;
   sellerKey: string;
+  quickLeadsSellerId: string;
 }
 
 async function api(method: string, path: string, body?: unknown) {
@@ -67,13 +68,27 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
       return commands.status([]);
     }
     const email = args.find((a) => a.includes("@")) || process.env.DEMO_SELLER_PAYPAL_EMAIL || undefined;
-    const agent = await api("POST", "/api/agents", { name: "Research Agent" });
+    const atlasHost = new URL(process.env.DEMO_API_URL || "http://localhost:4100").hostname;
+    const agent = await api("POST", "/api/agents", {
+      name: "Research Agent",
+      // The demo agent may only pay Atlas Data, and must ask before spending more than $0.25 at once.
+      policy: { dailyLimitUsd: "2.00", maxPerRequestUsd: "1.00", approvalAboveUsd: "0.25", allowedHosts: [atlasHost] },
+    });
     const seller = await api("POST", "/api/sellers", { name: "Atlas Data", paypalEmail: email });
-    const demo: Demo = { agentId: agent.agent.id, agentKey: agent.apiKey, sellerId: seller.seller.id, sellerKey: seller.apiKey };
+    const quickLeads = await api("POST", "/api/sellers", { name: "QuickLeads" });
+    const demo: Demo = {
+      agentId: agent.agent.id,
+      agentKey: agent.apiKey,
+      sellerId: seller.seller.id,
+      sellerKey: seller.apiKey,
+      quickLeadsSellerId: quickLeads.seller.id,
+    };
     mkdirSync(join(ROOT, "data"), { recursive: true });
     writeFileSync(DEMO_FILE, JSON.stringify(demo, null, 2));
     console.log(`Created agent  ${demo.agentId} (Research Agent)`);
     console.log(`Created seller ${demo.sellerId} (Atlas Data)${email ? `, payouts to ${email}` : ""}`);
+    console.log(`Created seller ${demo.quickLeadsSellerId} (QuickLeads, not on the agent's allowed list)`);
+    console.log(`Agent rules: $2.00/day, max $1.00 per request, approval above $0.25, only pays ${atlasHost}`);
     if (!email) console.log("Tip: set DEMO_SELLER_PAYPAL_EMAIL in .env (a sandbox account email) so payouts work.");
     console.log(`API keys saved to data/demo.json (git-ignored).`);
   },
@@ -105,6 +120,14 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
     console.log("PayPal processes payouts in the background. Run 'npm run try status' in ~30 seconds.");
   },
 
+  async approve() {
+    await decide("approve");
+  },
+
+  async deny() {
+    await decide("deny");
+  },
+
   async status() {
     const overview = await api("GET", "/api/overview");
     const { payouts } = await api("GET", "/api/payouts");
@@ -133,10 +156,18 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
   },
 };
 
+async function decide(action: "approve" | "deny") {
+  const { approvals } = await api("GET", "/api/approvals?status=pending");
+  if (!approvals.length) return void console.log("No payments are waiting for approval.");
+  const oldest = approvals.at(-1);
+  await api("POST", `/api/approvals/${oldest.id}/${action}`);
+  console.log(`${action === "approve" ? "Approved" : "Denied"} ${usd(oldest.amount)} for ${oldest.description ?? oldest.url}`);
+}
+
 const [name = "status", ...args] = process.argv.slice(2);
 const command = commands[name];
 if (!command) {
-  console.log("Usage: npm run try <setup|topup|charge|payout|status> [args]");
+  console.log("Usage: npm run try <setup|topup|charge|payout|status|approve|deny> [args]");
   process.exit(1);
 }
 command(args).catch((err) => {

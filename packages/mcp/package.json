@@ -1,0 +1,19 @@
+{
+  "name": "@tollgate/mcp",
+  "version": "0.1.0",
+  "description": "MCP server that gives any AI assistant a Tollgate wallet.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "node --import tsx src/server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "@tollgate/client": "*",
+    "@tollgate/protocol": "*",
+    "zod": "^4.0.0"
+  }
+}
