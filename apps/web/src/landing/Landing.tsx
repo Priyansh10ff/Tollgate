@@ -3,6 +3,7 @@ import { Hero, HERO_SCROLL, BOOT_LINES } from "./Hero";
 import { DemoDashboard } from "./DemoDashboard";
 import { Phone } from "./Phone";
 import { useBoot, useScroll, clamp } from "./useScroll";
+import { Logo, LogoMark } from "../Logo";
 import "./landing.css";
 
 const TONES: Record<string, [string, string, string]> = {
@@ -65,7 +66,7 @@ export function Landing() {
       </div>
 
       <nav className="lb-nav">
-        <a href="/" className="serif lb-logo">Tollgate<span>.</span></a>
+        <Logo className="lb-logo" />
         <div className="lb-nav-links">
           <a href="#demo">Try the demo</a>
           <a href="#how">How it works</a>
@@ -238,7 +239,7 @@ export function Landing() {
       </main>
 
       <footer className="lb-footer">
-        <span>Tollgate · MIT licensed · Built for the PayPal AI Hackathon</span>
+        <span className="lb-footer-brand"><LogoMark size={20} />Tollgate · MIT licensed · Built for the PayPal AI Hackathon</span>
         <span>Settled through PayPal</span>
       </footer>
     </div>

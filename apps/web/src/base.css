@@ -25,3 +25,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .mono { font-family: var(--mono); }
 .serif { font-family: var(--serif); font-weight: 400; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Logo: mark + wordmark */
+.logo { display: inline-flex; align-items: center; gap: 10px; font-size: 28px; line-height: 1; color: var(--ink); text-decoration: none; }
+.logo-mark { flex: none; border-radius: 9px; box-shadow: 0 6px 16px -8px rgba(79, 70, 229, .7); transition: transform .25s ease; }
+.logo:hover .logo-mark { transform: rotate(-6deg); }
+.logo-dot { color: var(--indigo); }

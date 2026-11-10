@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
+import { LogoMark } from "../Logo";
 import "../dashboard/dashboard.css";
 
 /**
@@ -192,7 +193,7 @@ export function DemoDashboard() {
                   <div className="row-between"><span className="strong">Needs you</span><span className="muted small">{s.pending ? "1 waiting" : "0 waiting"}</span></div>
                   {s.pending ? (
                     <div className="notif-card demo-pending">
-                      <div className="notif-card-head"><div className="notif-icon serif">T</div><div className="muted small">Research Agent · now</div></div>
+                      <div className="notif-card-head"><LogoMark size={32} className="notif-icon" /><div className="muted small">Research Agent · now</div></div>
                       <div className="notif-card-title">Spend {money(s.pending.price)} on {s.pending.what.toLowerCase()}?</div>
                       <div className="muted small">{s.pending.subject} · {s.pending.seller} · over your $0.25 limit</div>
                       <div className="notif-card-actions">

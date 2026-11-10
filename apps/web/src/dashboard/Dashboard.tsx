@@ -3,6 +3,7 @@ import { AuthError, HubApi, usd, type Approval, type HubEvent, type Overview, ty
 import { OwnerView } from "./OwnerView";
 import { SellerView } from "./SellerView";
 import { Timeline } from "./Timeline";
+import { Logo } from "../Logo";
 import "./dashboard.css";
 
 const TOKEN_KEY = "tollgate.adminToken";
@@ -56,7 +57,7 @@ function SignIn({ error, onSubmit }: { error: string; onSubmit: (token: string) 
           if (value.trim()) onSubmit(value.trim());
         }}
       >
-        <a href="/" className="serif db-logo">Tollgate<span>.</span></a>
+        <Logo className="db-logo" />
         <h1 className="serif">Sign in to your hub</h1>
         <p className="muted">Use the admin token from <span className="mono">HUB_ADMIN_TOKEN</span> in your <span className="mono">.env</span>.</p>
         <label className="db-field">
@@ -162,7 +163,7 @@ function Signed({ token, onAuthFail, onSignOut }: { token: string; onAuthFail: (
     <div className="db">
       <header className="db-header">
         <div className="db-header-left">
-          <a href="/" className="serif db-logo">Tollgate<span>.</span></a>
+          <Logo className="db-logo" />
           <nav className="db-nav" aria-label="Sections">
             <a href="#top" className="on">Home</a>
             <a href="#timeline">Activity</a>

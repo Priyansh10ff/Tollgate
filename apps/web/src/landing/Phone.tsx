@@ -1,3 +1,5 @@
+import { LogoMark } from "../Logo";
+
 /** A generic modern smartphone showing Tollgate's approval notification on the lock screen. */
 export function Phone() {
   return (
@@ -27,7 +29,7 @@ export function Phone() {
           <div className="lock-notifs">
             <div className="os-notif buzz">
               <div className="os-notif-head">
-                <span className="app-icon serif" aria-hidden="true">T</span>
+                <LogoMark size={20} className="app-icon" />
                 <span className="os-app">Tollgate</span>
                 <span className="os-when">now</span>
               </div>
@@ -40,7 +42,7 @@ export function Phone() {
             </div>
             <div className="os-notif secondary">
               <div className="os-notif-head">
-                <span className="app-icon serif" aria-hidden="true">T</span>
+                <LogoMark size={20} className="app-icon" />
                 <span className="os-app">Tollgate</span>
                 <span className="os-when">2m ago</span>
               </div>
