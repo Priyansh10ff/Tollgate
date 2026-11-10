@@ -1,71 +1,115 @@
+<div align="center">
+
+<img src="docs/logo.svg" width="96" height="96" alt="Tollgate logo" />
+
 # Tollgate
 
 **Pay-per-request for AI agents, settled through PayPal.**
 
-AI agents browse websites and call APIs all day, but they can't pay for anything, and the people who run those sites and APIs have no way to charge them. Tollgate fixes both sides:
+Sellers add one line to charge agents per request. Agents pay from a PayPal-funded wallet, within rules their owner sets.
 
-- **Sellers** add one line to their API. Requests from agents without payment get an `HTTP 402 Payment Required` response with a price.
-- **Agents** get a wallet, funded through PayPal, that pays automatically within the spending limits their owner sets.
-- **Tiny payments work** because each charge is recorded in a ledger instead of going through PayPal one by one. Sellers' earnings are paid out in batches with PayPal Payouts.
+[![Live demo](https://img.shields.io/badge/live_demo-usetollgate.onrender.com-4f46e5?style=for-the-badge)](https://usetollgate.onrender.com)
 
-**Live demo: [usetollgate.onrender.com](https://usetollgate.onrender.com)** (PayPal sandbox, so no real money moves). The first load can take up to a minute while the free server wakes up.
+![PayPal](https://img.shields.io/badge/PayPal-Orders_%2B_Payouts-003087?logo=paypal&logoColor=white)
+![Claude](https://img.shields.io/badge/Claude-agent_%2B_MCP-d97757?logo=anthropic&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-339933?logo=nodedotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-44_passing-16a34a)
+[![License: MIT](https://img.shields.io/badge/license-MIT-64748b)](LICENSE)
 
-![Tollgate: an agent request jams at 402, gets paid within the owner's rules, and settles through PayPal](docs/screenshots/landing.gif)
+[**Try it**](#try-it-in-two-minutes) · [**How it works**](#how-it-works) · [**Sellers**](#charge-agents-in-one-line-sellers) · [**Agents**](#give-an-agent-a-wallet) · [**Security**](#security-model) · [**API**](#api)
+
+<br />
+
+<img src="docs/screenshots/landing.gif" width="900" alt="An agent's request jams at 402 Payment Required, gets paid within the owner's rules, and settles through PayPal" />
+
+</div>
+
+<br />
+
+## Why
+
+AI agents browse websites and call APIs all day, but they can't pay for anything, and the people who run those sites and APIs have no way to charge them. A PayPal or card payment for $0.03 would cost more in fees than the payment itself.
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### For sellers
+
+Add `tollgate({ price })` to any Express route. Agents without payment get `402 Payment Required` with a signed quote. Earnings cash out through **PayPal Payouts**.
+
+</td>
+<td width="33%" valign="top">
+
+### For agents
+
+A wallet that pays 402s automatically: a drop-in `fetch()`, or an MCP server for Claude Desktop. Receipts are signed and single-use.
+
+</td>
+<td width="33%" valign="top">
+
+### For owners
+
+Fund the wallet with **PayPal checkout**. Set a daily budget, a max per request, an ask-me limit and allowed sites. Every cent is in an audited ledger.
+
+</td>
+</tr>
+</table>
 
 ## Try it in two minutes
 
-1. Open the [live demo](https://usetollgate.onrender.com/app?signup) and create an account with any email.
+The [live demo](https://usetollgate.onrender.com) runs on PayPal **sandbox**, so no real money moves. The first load can take up to a minute while the free server wakes up.
+
+1. Open the [sign-up page](https://usetollgate.onrender.com/app?signup) and create an account with any email.
 2. Click **Start the live demo**. You get a Research Agent with its own wallet and two sellers: Atlas Data (live real-world data) and QuickLeads (a site the agent isn't allowed to pay).
-3. Click **Add $10 with PayPal** and pay with a PayPal **sandbox** account (the demo page shows a test login when one is configured).
+3. Click **Add $10 with PayPal** and pay with a PayPal **sandbox** account (the demo page shows a test login).
 4. Pick a task and click **Run the agent**. Watch Claude buy data for a few cents per request.
 5. When it asks to spend $0.50 on a full report, **Approve** it. Then watch QuickLeads get **blocked** by the spending rules.
 6. Switch to **Seller** and **Cash out via PayPal**: the earnings go out through PayPal Payouts.
 
-| The agent asks before a big purchase | Every step, live |
-|---|---|
-| ![Approval request](docs/screenshots/approval.jpg) | ![Agent run](docs/screenshots/agent-run.jpg) |
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/approval.jpg" alt="The agent asks before a $0.50 purchase" /><p align="center"><sub>The agent asks before a big purchase</sub></p></td>
+<td width="50%"><img src="docs/screenshots/agent-run.jpg" alt="Every step of the agent run, live" /><p align="center"><sub>Every step, live</sub></p></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/seller.jpg" alt="Seller earnings and PayPal payouts" /><p align="center"><sub>Seller earnings and PayPal payouts</sub></p></td>
+<td width="50%"><img src="docs/screenshots/sign-up.jpg" alt="Sign up with a private workspace" /><p align="center"><sub>Accounts with private workspaces</sub></p></td>
+</tr>
+</table>
 
-| Seller earnings and PayPal payouts | Accounts with private workspaces |
-|---|---|
-| ![Seller view](docs/screenshots/seller.jpg) | ![Sign up](docs/screenshots/sign-up.jpg) |
-
-## Architecture
+## How it works
 
 ```mermaid
-flowchart LR
-  Owner(["Agent owner"]) -- "top up" --> PPin["PayPal Orders"]
-  PPin --> Hub
-  Agent["AI agent<br/>(Claude + Tollgate wallet)"] -- "GET /data" --> Seller["Seller API<br/>+ tollgate() middleware"]
-  Seller -- "402 + price quote" --> Agent
-  Agent -- "pay quote" --> Hub["Tollgate hub<br/>rules · ledger · receipts"]
-  Hub -- "signed receipt" --> Agent
-  Agent -- "GET /data + receipt" --> Seller
-  Hub -- "ask if over limit" --> Owner
-  Hub -- "batch payout" --> PPout["PayPal Payouts"]
-  PPout --> SellerOwner(["Seller"])
+sequenceDiagram
+  autonumber
+  participant A as AI agent
+  participant S as Seller API
+  participant H as Tollgate hub
+  participant O as Owner
+  participant P as PayPal
+  O->>P: Top up wallet (PayPal Orders)
+  P-->>H: Capture verified, wallet credited
+  A->>S: GET /data
+  S-->>A: 402 Payment Required + signed quote
+  A->>H: Pay quote
+  H->>H: Check rules, debit wallet, credit seller (one transaction)
+  opt Price above the ask-me limit
+    H->>O: Approve $0.50?
+    O-->>H: Approve
+  end
+  H-->>A: Ed25519 receipt
+  A->>S: GET /data + receipt
+  S-->>A: 200 OK + data (receipt verified offline)
+  H->>P: Seller cashes out (PayPal Payouts)
 ```
 
 - **Hub** (`apps/hub`): accounts, agent wallets, spending rules, approvals, the double-entry ledger, Ed25519 receipts, PayPal top-ups and payouts, and the dashboard API.
 - **Seller middleware** (`@tollgate/express`): one line per route. Verifies receipts offline with the hub's public key.
 - **Agent wallet** (`@tollgate/client`, `@tollgate/mcp`): a `fetch()` that pays 402s, for code or for Claude Desktop.
 
-**Built with:** TypeScript, Node.js 22 (built-in SQLite), Express, React + Vite, PayPal Orders v2 and Payouts v1 (sandbox), the Claude API, the Model Context Protocol, Ed25519 / JWS receipts, and Supabase Storage for backups.
-
-## How it works
-
-```
-Agent ──GET /data──────────────▶ Seller API
-      ◀─402 Payment Required ── (price: $0.03)
-
-Agent ──pay $0.03──────────────▶ Tollgate hub ── checks spending rules
-      ◀─signed receipt ───────    debits wallet, credits seller in ledger
-
-Agent ──GET /data + receipt ───▶ Seller API ── verifies receipt
-      ◀─200 OK + data ─────────
-
-Owner tops up wallet ───────────▶ PayPal Orders API
-Seller withdraws earnings ◀───── PayPal Payouts API
-```
+**Built with:** TypeScript, Node.js 22 (built-in SQLite), Express, React + Vite, PayPal Orders v2 and Payouts v1, the Claude API, the Model Context Protocol, Ed25519 / JWS receipts, and Supabase Storage for backups.
 
 ## Charge agents in one line (sellers)
 
