@@ -38,7 +38,8 @@ export class Topups {
     private hubUrl: string,
   ) {}
 
-  async start(agentId: string, amount: number): Promise<{ topup: Topup; approveUrl: string }> {
+  /** returnTo "app": after PayPal, send the buyer straight back to the dashboard instead of a confirmation page. */
+  async start(agentId: string, amount: number, options: { returnTo?: "app" } = {}): Promise<{ topup: Topup; approveUrl: string }> {
     const agent = this.participants.getAgent(agentId);
     if (amount % MICROS_PER_CENT !== 0) throw badRequest("Top-ups must be whole cents");
     if (amount < MIN_TOPUP || amount > MAX_TOPUP) {
@@ -52,8 +53,8 @@ export class Topups {
       amountCents: microsToCents(amount),
       customId: id,
       description: `Tollgate wallet top-up for ${agent.name}`,
-      returnUrl: `${this.hubUrl}/paypal/return`,
-      cancelUrl: `${this.hubUrl}/paypal/cancel`,
+      returnUrl: `${this.hubUrl}/paypal/return${options.returnTo === "app" ? "?from=app" : ""}`,
+      cancelUrl: `${this.hubUrl}/paypal/cancel${options.returnTo === "app" ? "?from=app" : ""}`,
       requestId: id,
     });
     this.db.prepare("UPDATE topups SET paypal_order_id = ?, updated_at = ? WHERE id = ?").run(order.orderId, now(), id);

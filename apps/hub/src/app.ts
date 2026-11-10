@@ -100,10 +100,14 @@ export function createApp(hub: Hub) {
   app.use("/v1", agentApi);
 
   // PayPal sends the buyer back here after approving the payment.
+  const backToApp = (params: Record<string, string>) => `${hub.config.webUrl}/app?${new URLSearchParams(params)}`;
+
   app.get("/paypal/return", async (req, res) => {
     const orderId = String(req.query.token ?? "");
+    const fromApp = req.query.from === "app";
     try {
       const topup = await hub.topups.complete(orderId);
+      if (fromApp) return void res.redirect(303, backToApp({ topup: "ok", amount: microsToUsd(topup.amount) }));
       const agent = hub.participants.getAgent(topup.agentId);
       const balance = hub.ledger.balance(agent.accountId);
       res.send(
@@ -119,6 +123,7 @@ export function createApp(hub: Hub) {
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
+      if (fromApp) return void res.redirect(303, backToApp({ topup: "failed", reason: message.slice(0, 200) }));
       res.status(err instanceof AppError ? err.status : 502).send(
         page("Top-up not completed", `<h1>Top-up not completed</h1><p>${escape(message)}</p>`, "error"),
       );
@@ -132,6 +137,7 @@ export function createApp(hub: Hub) {
     } catch {
       // Unknown order: nothing to cancel.
     }
+    if (req.query.from === "app") return void res.redirect(303, backToApp({ topup: "cancelled" }));
     res.send(page("Top-up cancelled", "<h1>Top-up cancelled</h1><p>No money was taken. You can close this tab.</p>", "warn"));
   });
 
@@ -154,7 +160,9 @@ export function createApp(hub: Hub) {
     });
     app.post("/mock-paypal/checkout/:orderId/approve", (req, res) => {
       const order = mock.approve(req.params.orderId);
-      res.redirect(303, `${order.input.returnUrl}?token=${encodeURIComponent(order.id)}`);
+      const back = new URL(order.input.returnUrl);
+      back.searchParams.set("token", order.id);
+      res.redirect(303, back.toString());
     });
   }
 
@@ -274,8 +282,8 @@ export function createApp(hub: Hub) {
 
   admin.post("/agents/:id/topups", async (req, res) => {
     const agent = ownAgent(res, param(req, "id"));
-    const body = z.object({ amountUsd: usd }).parse(req.body);
-    res.status(201).json(await hub.topups.start(agent.id, body.amountUsd));
+    const body = z.object({ amountUsd: usd, returnTo: z.enum(["app"]).optional() }).parse(req.body);
+    res.status(201).json(await hub.topups.start(agent.id, body.amountUsd, { returnTo: body.returnTo }));
   });
 
   admin.get("/topups", (_req, res) => {

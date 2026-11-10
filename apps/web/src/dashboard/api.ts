@@ -140,7 +140,7 @@ export class HubApi {
   approve = (id: string) => this.call("POST", `/api/approvals/${id}/approve`);
   deny = (id: string) => this.call("POST", `/api/approvals/${id}/deny`);
   topUp = (agentId: string, amountUsd: string) =>
-    this.call<{ approveUrl: string }>("POST", `/api/agents/${agentId}/topups`, { amountUsd });
+    this.call<{ approveUrl: string }>("POST", `/api/agents/${agentId}/topups`, { amountUsd, returnTo: "app" });
   updatePolicy = (agentId: string, patch: Partial<{ dailyLimitUsd: string; maxPerRequestUsd: string; approvalAboveUsd: string; allowedHosts: string[] }>) =>
     this.call("PATCH", `/api/agents/${agentId}/policy`, patch);
   payout = (sellerId: string) => this.call<{ payout: Payout }>("POST", `/api/sellers/${sellerId}/payouts`, {});

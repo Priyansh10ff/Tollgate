@@ -74,6 +74,8 @@ function SignIn({ error, onSubmit }: { error: string; onSubmit: (token: string) 
 
   return (
     <div className="db-signin">
+      <AuthStory />
+      <div className="db-signin-side">
       <form
         className="db-signin-card"
         onSubmit={(e) => {
@@ -86,10 +88,7 @@ function SignIn({ error, onSubmit }: { error: string; onSubmit: (token: string) 
           <>
             <h1 className="serif">Hub admin</h1>
             <p className="muted">Running your own hub? Use the token from <span className="mono">HUB_ADMIN_TOKEN</span>. It sees every agent and seller.</p>
-            <label className="db-field">
-              <span>Admin token</span>
-              <input type="password" autoComplete="current-password" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} autoFocus />
-            </label>
+            <PasswordField label="Admin token" value={adminToken} onChange={setAdminToken} autoComplete="current-password" autoFocus />
           </>
         ) : (
           <>
@@ -107,17 +106,13 @@ function SignIn({ error, onSubmit }: { error: string; onSubmit: (token: string) 
               <span>Email</span>
               <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
             </label>
-            <label className="db-field">
-              <span>Password{mode === "signup" && " (8+ characters)"}</span>
-              <input
-                type="password"
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                minLength={mode === "signup" ? 8 : undefined}
-                required
-              />
-            </label>
+            <PasswordField
+              label={mode === "signup" ? "Password (8+ characters)" : "Password"}
+              value={password}
+              onChange={setPassword}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              minLength={mode === "signup" ? 8 : undefined}
+            />
           </>
         )}
         {shown && <div className="db-error" role="alert">{shown}</div>}
@@ -128,7 +123,77 @@ function SignIn({ error, onSubmit }: { error: string; onSubmit: (token: string) 
           {mode === "admin" ? "Log in with email instead" : "Hub admin? Use the admin token"}
         </button>
       </form>
+      </div>
     </div>
+  );
+}
+
+function PasswordField(props: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete: string;
+  minLength?: number;
+  autoFocus?: boolean;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <label className="db-field">
+      <span>{props.label}</span>
+      <span className="db-pw">
+        <input
+          type={show ? "text" : "password"}
+          autoComplete={props.autoComplete}
+          value={props.value}
+          onChange={(e) => props.onChange(e.target.value)}
+          minLength={props.minLength}
+          autoFocus={props.autoFocus}
+          required
+        />
+        <button type="button" className="db-pw-toggle" aria-label={show ? "Hide password" : "Show password"} aria-pressed={show} onClick={() => setShow(!show)}>
+          {show ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3l18 18" /><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c5 0 9 4.5 10 7-.4 1-1.3 2.4-2.6 3.7M6.5 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7 1.8 0 3.4-.6 4.8-1.4" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+          )}
+        </button>
+      </span>
+    </label>
+  );
+}
+
+const FEED = [
+  { tone: "pay", who: "Research Agent", what: "Company profile · Atlas Data", amount: "−$0.02" },
+  { tone: "pay", who: "Research Agent", what: "Financials · Atlas Data", amount: "−$0.05" },
+  { tone: "wait", who: "Needs you", what: "Analyst report · over your $0.25 limit", amount: "$0.50" },
+  { tone: "ok", who: "You approved", what: "Analyst report · Atlas Data", amount: "−$0.50" },
+  { tone: "stop", who: "Blocked", what: "QuickLeads isn't on the allowed list", amount: "$0.00" },
+  { tone: "money", who: "Payout", what: "Atlas Data → PayPal", amount: "+$1.06" },
+];
+
+/** The left side of the sign-in page: what Tollgate does, as a live-looking feed. */
+function AuthStory() {
+  return (
+    <aside className="db-auth-story" aria-hidden="true">
+      <div className="db-auth-blob a" />
+      <div className="db-auth-blob b" />
+      <div className="db-auth-copy">
+        <div className="db-auth-kicker mono">PAY-PER-REQUEST FOR AI AGENTS</div>
+        <h2 className="serif">Your agents can pay now.<br /><em>Within your rules.</em></h2>
+        <p>Fund a wallet with PayPal. Set a daily budget, a max per request, and when it has to ask you. Every cent lands in a ledger you can audit.</p>
+      </div>
+      <ol className="db-auth-feed">
+        {FEED.map((f, i) => (
+          <li key={i} className={`db-auth-row ${f.tone}`} style={{ animationDelay: `${i * 0.9}s` }}>
+            <span className="dot" />
+            <span className="who">{f.who}</span>
+            <span className="what">{f.what}</span>
+            <span className="mono amt">{f.amount}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="db-auth-foot mono">Settled through PayPal · Receipts signed with Ed25519</div>
+    </aside>
   );
 }
 
@@ -213,6 +278,17 @@ function Signed({ token, onAuthFail, onSignOut }: { token: string; onAuthFail: (
     if (role === "seller") loadSellerTxns();
   }, [role, loadSellerTxns, events.length]);
 
+  // Coming back from PayPal checkout: show how it went, then tidy the address bar.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const result = params.get("topup");
+    if (!result) return;
+    if (result === "ok") setNotice({ kind: "ok", text: `Added $${params.get("amount") ?? ""} from PayPal to the wallet.` });
+    if (result === "cancelled") setNotice({ kind: "info", text: "Top-up cancelled. No money was taken." });
+    if (result === "failed") setNotice({ kind: "error", text: `Top-up not completed: ${params.get("reason") ?? "unknown error"}` });
+    window.history.replaceState(null, "", "/app");
+  }, []);
+
   useEffect(() => {
     if (!notice) return;
     const t = window.setTimeout(() => setNotice(null), 6000);
@@ -259,15 +335,12 @@ function Signed({ token, onAuthFail, onSignOut }: { token: string; onAuthFail: (
   };
   const topUp = async () => {
     if (!agent) return;
-    // Open the tab during the click so pop-up blockers allow it, then point it at PayPal.
-    const tab = window.open("about:blank", "_blank");
     try {
+      // Same tab: PayPal sends the buyer straight back to /app when they're done.
+      setNotice({ kind: "info", text: "Opening PayPal…" });
       const { approveUrl } = await api.topUp(agent.id, "10.00");
-      if (tab) tab.location.href = approveUrl;
-      else window.location.href = approveUrl;
-      setNotice({ kind: "info", text: "Finish the $10.00 payment in the PayPal tab. The balance updates when it's done." });
+      window.location.assign(approveUrl);
     } catch (err) {
-      tab?.close();
       fail(err);
     }
   };
