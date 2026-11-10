@@ -7,16 +7,33 @@ const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 if (existsSync(join(ROOT, ".env"))) process.loadEnvFile(join(ROOT, ".env"));
 
 const demoFile = join(ROOT, "data", "demo.json");
-if (!existsSync(demoFile)) {
-  console.error("No demo sellers yet. Start the hub, then run: npm run try setup");
-  process.exit(1);
-}
-const demo = JSON.parse(readFileSync(demoFile, "utf8")) as { sellerId: string; quickLeadsSellerId?: string };
-if (!demo.quickLeadsSellerId) {
-  console.error("Demo data is from an older setup. Run: npm run try setup --force");
-  process.exit(1);
+type Demo = { sellerId: string; quickLeadsSellerId?: string };
+
+function readDemo(): Demo | null {
+  if (!existsSync(demoFile)) return null;
+  try {
+    const demo = JSON.parse(readFileSync(demoFile, "utf8")) as Demo;
+    return demo.sellerId && demo.quickLeadsSellerId ? demo : null;
+  } catch {
+    return null;
+  }
 }
 
+/** Waits until `npm run try setup` has created the demo sellers, then starts both APIs. */
+async function waitForSetup(): Promise<Required<Demo>> {
+  let demo = readDemo();
+  if (!demo) {
+    console.log("Waiting for the demo sellers. In another terminal run: npm run try setup");
+    if (existsSync(demoFile)) console.log("(Your data/demo.json is from an older version: run npm run try setup --force)");
+  }
+  while (!demo) {
+    await new Promise((r) => setTimeout(r, 2000));
+    demo = readDemo();
+  }
+  return demo as Required<Demo>;
+}
+
+const demo = await waitForSetup();
 const hubUrl = process.env.HUB_URL || "http://localhost:4000";
 const atlasPort = Number(process.env.PORT || process.env.DEMO_API_PORT || 4100);
 const leadsPort = Number(process.env.DEMO_LEADS_PORT || 4200);

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Hero, HERO_SCROLL, BOOT_LINES } from "./Hero";
+import { DemoDashboard } from "./DemoDashboard";
 import { useBoot, useScroll, clamp } from "./useScroll";
 import "./landing.css";
 
@@ -65,6 +66,7 @@ export function Landing() {
       <nav className="lb-nav">
         <a href="/" className="serif lb-logo">Tollgate<span>.</span></a>
         <div className="lb-nav-links">
+          <a href="#demo">Try the demo</a>
           <a href="#how">How it works</a>
           <a href="#code">Developers</a>
           <a href="#pricing">Pricing</a>
@@ -74,6 +76,8 @@ export function Landing() {
 
       <main>
         <Hero top={top} vh={vh} vw={vw} boot={boot} />
+
+        <DemoDashboard />
 
         <section id="how" data-tone="indigo" className="lb-section">
           <div className="wrap">
