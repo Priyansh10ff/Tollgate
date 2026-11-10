@@ -34,7 +34,7 @@ export function Phone() {
                 <span className="os-when">now</span>
               </div>
               <div className="os-notif-title">Research Agent wants to spend $0.50</div>
-              <div className="os-notif-body">Analyst report · Northwind Robotics · Atlas Data. Over your $0.25 ask-me limit.</div>
+              <div className="os-notif-body">Full report · NVIDIA · Atlas Data. Over your $0.25 ask-me limit.</div>
               <div className="os-notif-actions" aria-hidden="true">
                 <span className="os-action primary">Approve</span>
                 <span className="os-action">Deny</span>

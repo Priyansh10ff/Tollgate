@@ -4,6 +4,7 @@ import { openDb } from "../src/db.ts";
 import { createHub } from "../src/hub.ts";
 import { createApp } from "../src/app.ts";
 import { PayPalMock } from "../src/paypal/index.ts";
+import { fixtureSources } from "@tollgate/demo-api";
 
 export const ADMIN = "test-admin-token";
 
@@ -13,7 +14,7 @@ export function testHub() {
   // Never call Claude or show sandbox logins from tests, whatever is in .env.
   const config = { ...base, demo: { ...base.demo, anthropicApiKey: "", buyerEmail: "", buyerPassword: "", sellerPaypalEmail: "atlas@example.com" } };
   const paypal = new PayPalMock(config.hubUrl);
-  const hub = createHub(config, { db: openDb(":memory:"), paypal });
+  const hub = createHub(config, { db: openDb(":memory:"), paypal, demoSources: fixtureSources() });
   return { hub, paypal };
 }
 

@@ -119,7 +119,7 @@ Without PayPal keys, the hub runs with a **simulated PayPal** so you can try eve
 
 The demo has a hub, two paid APIs and a Claude research agent:
 
-- **Atlas Data** (`localhost:4100`): market data on fictional companies, $0.01–$0.50 per request.
+- **Atlas Data** (`localhost:4100`): live real-world data, $0.01–$0.50 per request: US company profiles, financials and filings (SEC EDGAR), tech news (Hacker News), encyclopedia summaries (Wikipedia), weather (Open-Meteo), currency rates (ECB via Frankfurter), Formula 1 (Jolpica) and any public web page. It looks the data up before asking for payment, so failed lookups are never charged. `npm run check-data` checks every source.
 - **QuickLeads** (`127.0.0.1:4200`): an unvetted "contact list" site the agent is **not** allowed to pay.
 - **Research Agent**: Claude with a Tollgate wallet. Rules: $2/day, max $1 per request, asks the owner above $0.25, only pays `localhost`.
 
@@ -138,7 +138,7 @@ npm run agent                # terminal 2: run the research agent
 
 Watch the payments arrive at http://localhost:5173/app.
 
-The agent reads the free catalog, buys a company profile, financials and news for a few cents each, then asks to buy a $0.50 analyst report. That pauses until you approve it in the dashboard (or run `npm run try approve`). Finally it tries to buy executive contacts from QuickLeads and is blocked by its spending rules. Ask it something else with `npm run agent -- "Is Lumen Health a good investment?"`.
+The agent reads the free catalog, buys NVIDIA's company profile, financials and news for a few cents each, then asks to buy a $0.50 full report. That pauses until you approve it in the dashboard (or run `npm run try approve`). Finally it tries to buy executive contacts from QuickLeads and is blocked by its spending rules. Ask it something else with `npm run agent -- "Who's leading F1 right now, and what's the weather at the next race?"`.
 
 ## Accounts and the live demo
 

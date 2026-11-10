@@ -1,6 +1,6 @@
 import http from "node:http";
 import type { AddressInfo } from "node:net";
-import { createDemoApis } from "@tollgate/demo-api";
+import { createDemoApis, fixtureSources } from "@tollgate/demo-api";
 import { loadConfig } from "../apps/hub/src/config.ts";
 import { openDb, SYSTEM_ACCOUNTS } from "../apps/hub/src/db.ts";
 import { createHub } from "../apps/hub/src/hub.ts";
@@ -27,7 +27,7 @@ export async function demoNetwork() {
 
   const atlasSeller = hub.participants.createSeller("Atlas Data", "atlas@example.com").seller;
   const leadsSeller = hub.participants.createSeller("QuickLeads").seller;
-  const { atlas, quickLeads } = createDemoApis({ hubUrl, atlasSellerId: atlasSeller.id, quickLeadsSellerId: leadsSeller.id });
+  const { atlas, quickLeads } = createDemoApis({ hubUrl, atlasSellerId: atlasSeller.id, quickLeadsSellerId: leadsSeller.id, sources: fixtureSources() });
   const atlasServer = http.createServer(atlas);
   const leadsServer = http.createServer(quickLeads);
   const atlasUrl = `http://localhost:${await listen(atlasServer)}`;

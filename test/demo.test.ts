@@ -35,11 +35,11 @@ test("demo: the research agent buys data, waits for approval, and gets blocked f
   try {
     const urls = [
       `${n.atlasUrl}/v1/catalog`, // free
-      `${n.atlasUrl}/v1/companies/northwind-robotics`, // $0.02
-      `${n.atlasUrl}/v1/companies/northwind-robotics/financials`, // $0.05
-      `${n.atlasUrl}/v1/news?company=northwind-robotics`, // $0.01
-      `${n.atlasUrl}/v1/reports/northwind-robotics`, // $0.50 → owner approval
-      `${n.leadsUrl}/v1/leads?company=northwind-robotics`, // $0.40 on a site the agent may not pay
+      `${n.atlasUrl}/v1/companies/NVDA`, // $0.02
+      `${n.atlasUrl}/v1/companies/NVDA/financials`, // $0.05
+      `${n.atlasUrl}/v1/news?q=NVIDIA`, // $0.01
+      `${n.atlasUrl}/v1/reports/NVDA`, // $0.50 → owner approval
+      `${n.leadsUrl}/v1/leads?company=NVDA`, // $0.40 on a site the agent may not pay
     ];
     const seen: Message[][] = [];
     const payments: TollgateEvent[] = [];
@@ -48,7 +48,7 @@ test("demo: the research agent buys data, waits for approval, and gets blocked f
 
     const approval = n.autoApprove("approve");
     const { answer } = await runResearchAgent({
-      task: "Should we acquire Northwind Robotics?",
+      task: "Should we invest in NVIDIA?",
       model: scriptedModel(urls, seen),
       wallet,
       sources: [n.atlasUrl, n.leadsUrl],
@@ -59,10 +59,10 @@ test("demo: the research agent buys data, waits for approval, and gets blocked f
     assert.equal(answer, "Recommendation: proceed with diligence.");
     // Each tool result the model saw, in order:
     assert.match(lastToolResult(seen[1]).content, /HTTP 200[\s\S]*Atlas Data/); // catalog
-    assert.match(lastToolResult(seen[2]).content, /Pune, India/); // profile
+    assert.match(lastToolResult(seen[2]).content, /Santa Clara/); // profile
     assert.match(lastToolResult(seen[3]).content, /revenueM/); // financials
-    assert.match(lastToolResult(seen[4]).content, /assembly line/); // news
-    assert.match(lastToolResult(seen[5]).content, /"rating":"Buy"/); // report, after approval
+    assert.match(lastToolResult(seen[4]).content, /GPU architecture/); // news
+    assert.match(lastToolResult(seen[5]).content, /"revenueGrowthPct":114.2/); // report, after approval
     const blocked = lastToolResult(seen[6]);
     assert.equal(blocked.is_error, true);
     assert.match(blocked.content, /Payment declined \(policy_host_not_allowed\)/);
@@ -94,7 +94,7 @@ test("demo: the agent's request is denied when the owner says no", async () => {
     const denial = n.autoApprove("deny");
     await runResearchAgent({
       task: "Get the report",
-      model: scriptedModel([`${n.atlasUrl}/v1/reports/quanta-foods`], seen),
+      model: scriptedModel([`${n.atlasUrl}/v1/reports/NVDA`], seen),
       wallet,
       sources: [n.atlasUrl],
     });
@@ -120,15 +120,15 @@ test("MCP: any assistant can use the wallet through the Tollgate MCP server", as
 
     const text = (r: Awaited<ReturnType<typeof client.callTool>>) => (r.content as { text: string }[])[0].text;
 
-    const paid = await client.callTool({ name: "tollgate_fetch", arguments: { url: `${n.atlasUrl}/v1/companies/lumen-health` } });
+    const paid = await client.callTool({ name: "tollgate_fetch", arguments: { url: `${n.atlasUrl}/v1/companies/NVDA` } });
     assert.equal(paid.isError, false);
     assert.match(text(paid), /^HTTP 200\nPaid \$0\.02/);
-    assert.match(text(paid), /Lumen Health/);
+    assert.match(text(paid), /NVIDIA CORP/);
 
     const free = await client.callTool({ name: "tollgate_fetch", arguments: { url: `${n.atlasUrl}/v1/catalog` } });
     assert.match(text(free), /No payment needed/);
 
-    const blocked = await client.callTool({ name: "tollgate_fetch", arguments: { url: `${n.leadsUrl}/v1/leads?company=lumen-health` } });
+    const blocked = await client.callTool({ name: "tollgate_fetch", arguments: { url: `${n.leadsUrl}/v1/leads?company=NVDA` } });
     assert.equal(blocked.isError, true);
     assert.match(text(blocked), /policy_host_not_allowed/);
 

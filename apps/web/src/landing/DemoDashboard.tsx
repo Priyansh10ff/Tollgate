@@ -13,13 +13,13 @@ interface Step { price: number; what: string; subject: string; seller: "Atlas Da
 interface Ev extends Partial<Step> { id: number; kind: Kind; amount: number; reason?: string }
 
 const SCRIPT: Step[] = [
-  { price: 0.02, what: "Company profile", subject: "Northwind Robotics", seller: "Atlas Data" },
-  { price: 0.05, what: "Financials", subject: "Northwind Robotics", seller: "Atlas Data" },
-  { price: 0.01, what: "News", subject: "Northwind Robotics", seller: "Atlas Data" },
-  { price: 0.5, what: "Analyst report", subject: "Northwind Robotics", seller: "Atlas Data" },
-  { price: 0.4, what: "Executive contacts", subject: "Northwind Robotics", seller: "QuickLeads" },
-  { price: 0.02, what: "Company profile", subject: "Lumen Health", seller: "Atlas Data" },
-  { price: 0.05, what: "Financials", subject: "Helios Grid", seller: "Atlas Data" },
+  { price: 0.02, what: "Company profile", subject: "NVIDIA", seller: "Atlas Data" },
+  { price: 0.05, what: "Financials", subject: "NVIDIA", seller: "Atlas Data" },
+  { price: 0.01, what: "News", subject: "NVIDIA", seller: "Atlas Data" },
+  { price: 0.5, what: "Full report", subject: "NVIDIA", seller: "Atlas Data" },
+  { price: 0.4, what: "Executive contacts", subject: "NVIDIA", seller: "QuickLeads" },
+  { price: 0.02, what: "Company profile", subject: "Apple", seller: "Atlas Data" },
+  { price: 0.05, what: "Financials", subject: "Microsoft", seller: "Atlas Data" },
 ];
 const DAILY_LIMIT = 2;
 const ASK_ABOVE = 0.25;
@@ -224,7 +224,7 @@ export function DemoDashboard() {
                         ? "Ready. One PayPal payout sends everything agents paid you."
                         : s.events.some((e) => e.kind === "payout")
                           ? "Cashed out. New sales keep adding up here."
-                          : `${money(1 - s.earned, 4)} to go. Approve the agent's analyst report to get there.`}</div>
+                          : `${money(1 - s.earned, 4)} to go. Approve the agent's full report to get there.`}</div>
                   </div>
                 </div>
                 <div className="db-card earned demo-card">

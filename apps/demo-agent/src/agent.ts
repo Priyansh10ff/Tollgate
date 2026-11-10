@@ -60,7 +60,7 @@ export function systemPrompt(sources: string[]): string {
     "- Every paid request spends your owner's real money. Only buy what the task needs, and never buy the same thing twice.",
     "- Free endpoints cost nothing; use them first.",
     "- If a payment is declined (spending limit, site not allowed, owner said no), don't retry or look for a workaround. Mention it in your answer.",
-    "- The data is fictional demo data. Treat it as given.",
+    "- Data sources return live real-world data. Cite where facts came from, and don't present anything as investment advice.",
     "",
     "Finish with a short brief for your owner: findings, a clear recommendation, and a 'Spent' line listing what you bought and the total.",
   ].join("\n");

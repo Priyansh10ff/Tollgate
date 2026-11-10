@@ -88,6 +88,9 @@ export async function authenticate(mode: "login" | "signup", email: string, pass
   if (!res.ok) {
     const issue = data?.error?.details?.[0];
     const field = issue?.path?.[0];
+    if (mode === "login" && res.status === 401) {
+      throw new Error("Wrong email or password. If you signed up a while ago, the demo server may have restarted and cleared accounts: just sign up again.");
+    }
     throw new Error(field ? `${field === "email" ? "Enter a valid email" : issue.message}.` : data?.error?.message ?? `Request failed (${res.status})`);
   }
   return data.token as string;

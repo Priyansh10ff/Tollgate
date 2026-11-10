@@ -16,8 +16,8 @@ const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 if (existsSync(join(ROOT, ".env"))) process.loadEnvFile(join(ROOT, ".env"));
 
 const DEFAULT_TASK =
-  "Should we consider acquiring Northwind Robotics? Check their profile, financials and recent news, " +
-  "read the full analyst report, and get direct contacts for their executives so we can reach out.";
+  "Should we invest in NVIDIA? Check the company profile, financials and recent news, " +
+  "read the full report, and get direct contacts for their executives so we can reach out.";
 
 const c = {
   dim: (s: string) => `\x1b[2m${s}\x1b[0m`,

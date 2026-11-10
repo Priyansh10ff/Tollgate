@@ -12,7 +12,7 @@ const LINE_H = { row: 30, rule: 30, total: 60 } as const;
 /** The receipt, line by line. The first five print on load, then it jams at 402 until you scroll. */
 const LINES: Line[] = [
   R("AGENT", "Research Agent"),
-  R("REQUEST", "GET /v1/companies/northwind"),
+  R("REQUEST", "GET /v1/companies/NVDA"),
   R("SELLER", "Atlas Data"),
   R("PRICE", "$0.03"),
   R("STATUS", "402 PAYMENT REQUIRED", "red"),

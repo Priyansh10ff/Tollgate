@@ -165,8 +165,8 @@ function PasswordField(props: {
 const FEED = [
   { tone: "pay", who: "Research Agent", what: "Company profile · Atlas Data", amount: "−$0.02" },
   { tone: "pay", who: "Research Agent", what: "Financials · Atlas Data", amount: "−$0.05" },
-  { tone: "wait", who: "Needs you", what: "Analyst report · over your $0.25 limit", amount: "$0.50" },
-  { tone: "ok", who: "You approved", what: "Analyst report · Atlas Data", amount: "−$0.50" },
+  { tone: "wait", who: "Needs you", what: "Full report · over your $0.25 limit", amount: "$0.50" },
+  { tone: "ok", who: "You approved", what: "Full report · NVIDIA", amount: "−$0.50" },
   { tone: "stop", who: "Blocked", what: "QuickLeads isn't on the allowed list", amount: "$0.00" },
   { tone: "money", who: "Payout", what: "Atlas Data → PayPal", amount: "+$1.06" },
 ];

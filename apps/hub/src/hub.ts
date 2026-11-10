@@ -14,6 +14,7 @@ import { Users } from "./services/users.ts";
 import { Demo } from "./services/demo.ts";
 import { publicKeys } from "./keys.ts";
 import type { ModelCall } from "@tollgate/demo-agent";
+import type { DataSources } from "@tollgate/demo-api";
 
 export interface Hub {
   config: Config;
@@ -35,7 +36,12 @@ export interface Hub {
 /** Wires up all hub services. Tests pass an in-memory db and a mock PayPal. */
 export function createHub(
   config: Config,
-  deps: { db?: DB; paypal?: PayPalGateway; demoModel?: (company: { slug: string; name: string }) => ModelCall } = {},
+  deps: {
+    db?: DB;
+    paypal?: PayPalGateway;
+    demoModel?: (company: { ticker: string; name: string }) => ModelCall;
+    demoSources?: DataSources;
+  } = {},
 ): Hub {
   const db = deps.db ?? openDb(config.dbPath);
   const ledger = new Ledger(db);
@@ -58,7 +64,7 @@ export function createHub(
     topups: new Topups(db, ledger, participants, paypal, events, config.hubUrl),
     payouts: new Payouts(db, ledger, participants, paypal, events, config.minPayoutMicros),
     users: new Users(db),
-    demo: new Demo(db, participants, events, config, () => publicKeys(config.hubUrl, signingKey), deps.demoModel),
+    demo: new Demo(db, participants, events, config, () => publicKeys(config.hubUrl, signingKey), deps.demoModel, deps.demoSources),
     payments: new Payments(db, ledger, participants, charges, approvals, events, signingKey, config.hubUrl),
   };
 }

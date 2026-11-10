@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "check-setup": "node --import tsx scripts/check-setup.ts",
+    "check-data": "node --import tsx scripts/check-data.ts",
     "dev": "concurrently -n hub,api,web -c blue,green,magenta \"npm run dev -w @tollgate/hub\" \"npm run dev -w @tollgate/demo-api\" \"npm run dev -w @tollgate/web\"",
     "hub": "npm run dev -w @tollgate/hub",
     "demo-api": "npm run dev -w @tollgate/demo-api",

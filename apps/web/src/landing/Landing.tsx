@@ -195,8 +195,8 @@ export function Landing() {
               <p className="lede light">Add the Tollgate MCP server and any MCP client can call paid APIs, with your limits and approvals.</p>
             </div>
             <div className="chat">
-              <div className="bubble me">Get Helios Grid's latest financials.</div>
-              <div className="bubble them"><div className="mono small light">tollgate_fetch · paid $0.05</div><div>Helios Grid made $310M revenue in 2025, up 22%, with $210M of debt.</div></div>
+              <div className="bubble me">Get NVIDIA's latest annual financials.</div>
+              <div className="bubble them"><div className="mono small light">tollgate_fetch · paid $0.05</div><div>Here are NVIDIA's last three fiscal years from its 10-K filings: revenue, profit, cash and debt, with growth and margins.</div></div>
             </div>
           </div>
         </section>

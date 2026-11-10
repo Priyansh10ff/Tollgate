@@ -1,7 +1,7 @@
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { randomBytes } from "node:crypto";
-import { createDemoApis, COMPANIES } from "@tollgate/demo-api";
+import { createDemoApis, type DataSources } from "@tollgate/demo-api";
 import { TollgateClient } from "@tollgate/client";
 import { runResearchAgent, claudeModel, replayModel, type AgentStep, type ModelCall } from "@tollgate/demo-agent";
 import { WELL_KNOWN_PATH, type HubKeys } from "@tollgate/protocol";
@@ -28,9 +28,21 @@ const RUNS_PER_USER_PER_DAY = 5;
 const MAX_TASK_CHARS = 400;
 
 export const DEMO_TASKS = [
-  "Should we consider acquiring Northwind Robotics? Check their profile, financials and recent news, read the full analyst report, and get direct contacts for their executives so we can reach out.",
-  "Is Lumen Health a good investment? Read their full analyst report.",
-  "Compare Helios Grid and Quanta Foods on revenue and recent news. Keep spending low.",
+  "Should we invest in NVIDIA? Check the company profile, financials and recent news, read the full report, and get direct contacts for their executives so we can reach out.",
+  "Who's leading the Formula 1 championship right now, where is the next race, and what will the weather be there?",
+  "I'm flying to Tokyo next week with $2,000. What's the weather going to be like, and how much is that in yen?",
+];
+
+/** Companies the replay model knows how to research when Claude isn't available. */
+const REPLAY_COMPANIES = [
+  { match: /nvidia|nvda/i, ticker: "NVDA", name: "NVIDIA" },
+  { match: /apple|aapl/i, ticker: "AAPL", name: "Apple" },
+  { match: /microsoft|msft/i, ticker: "MSFT", name: "Microsoft" },
+  { match: /tesla|tsla/i, ticker: "TSLA", name: "Tesla" },
+  { match: /\bamd\b|advanced micro/i, ticker: "AMD", name: "AMD" },
+  { match: /amazon|amzn/i, ticker: "AMZN", name: "Amazon" },
+  { match: /alphabet|google|googl/i, ticker: "GOOGL", name: "Alphabet" },
+  { match: /\bmeta\b|facebook/i, ticker: "META", name: "Meta" },
 ];
 
 export interface DemoWorkspace {
@@ -54,7 +66,9 @@ export class Demo {
     private config: Config,
     private keys: () => HubKeys,
     /** Tests inject a model. Otherwise Claude when configured, else the replay model. */
-    private modelFactory?: (company: { slug: string; name: string }) => ModelCall,
+    private modelFactory?: (company: { ticker: string; name: string }) => ModelCall,
+    /** Where Atlas Data gets its data. Live public sources unless tests pass fixtures. */
+    private dataSources?: DataSources,
   ) {
     this.internalHubUrl = config.hubUrl;
   }
@@ -115,7 +129,7 @@ export class Demo {
     if (this.running.has(key)) throw new AppError(409, "demo_running", "The agent is already running. Wait for it to finish.");
 
     const task = (taskInput ?? "").trim().slice(0, MAX_TASK_CHARS) || DEMO_TASKS[0]!;
-    const company = COMPANIES.find((c) => task.toLowerCase().includes(c.name.toLowerCase())) ?? COMPANIES[0]!;
+    const company = REPLAY_COMPANIES.find((c) => c.match.test(task)) ?? REPLAY_COMPANIES[0]!;
     const mode = this.nextMode(ownerId);
     const model = this.modelFactory
       ? this.modelFactory(company)
@@ -206,6 +220,7 @@ export class Demo {
         atlasSellerId: sellerFrom,
         quickLeadsSellerId: sellerFrom,
         atlasBaseUrl: DEMO_ATLAS,
+        sources: this.dataSources,
         quickLeadsBaseUrl: DEMO_LEADS,
         // Receipt keys come straight from the hub process instead of over the network.
         fetch: async (input, init) =>

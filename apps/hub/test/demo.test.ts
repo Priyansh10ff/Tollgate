@@ -39,7 +39,7 @@ test("hosted demo: a signed-up user runs the research agent end to end", async (
     s.paypal.approve(topup.body.topup.paypalOrderId);
     await fetch(`${s.base}/paypal/return?token=${topup.body.topup.paypalOrderId}`);
 
-    const run = await s.api("POST", "/api/demo/run", { task: "Should we acquire Northwind Robotics?" }, token);
+    const run = await s.api("POST", "/api/demo/run", { task: "Should we invest in NVIDIA?" }, token);
     assert.equal(run.status, 202);
     assert.equal(run.body.mode, "replay");
     assert.equal((await s.api("POST", "/api/demo/run", {}, token)).status, 409, "one run at a time");
@@ -53,7 +53,7 @@ test("hosted demo: a signed-up user runs the research agent end to end", async (
     assert.equal((await s.api("POST", `/api/approvals/${pending[0].id}/approve`, undefined, token)).status, 200);
 
     const finished = await waitFor(s, "agent.finished");
-    assert.match(String(finished.data.answer), /Northwind Robotics/);
+    assert.match(String(finished.data.answer), /NVIDIA/);
 
     const declined = s.hub.events.history().find((e) => e.type === "payment.declined");
     assert.equal(declined?.data.code, "policy_host_not_allowed");
