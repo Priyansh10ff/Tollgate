@@ -10,7 +10,7 @@ AI agents browse websites and call APIs all day, but they can't pay for anything
 
 **Live demo: [usetollgate.onrender.com](https://usetollgate.onrender.com)** (PayPal sandbox, so no real money moves). The first load can take up to a minute while the free server wakes up.
 
-![Tollgate landing page](docs/screenshots/landing.jpg)
+![Tollgate: an agent request jams at 402, gets paid within the owner's rules, and settles through PayPal](docs/screenshots/landing.gif)
 
 ## Try it in two minutes
 
