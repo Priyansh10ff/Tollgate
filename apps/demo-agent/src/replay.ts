@@ -23,19 +23,30 @@ export function replayModel(options: { atlas: string; leads: string; company: { 
     const turn = messages.filter((m) => m.role === "assistant").length;
     const step = steps[turn];
     if (!step) {
-      return {
-        stop_reason: "end_turn",
-        content: [
-          {
-            type: "text",
-            text:
-              `Brief on ${company.name} (replay mode: scripted steps, real payments).\n\n` +
-              "I bought the company profile, annual financials and recent news from Atlas Data (live SEC and news data), and the full report after you approved it. " +
-              "QuickLeads was blocked by your spending rules, so I didn't get executive contacts: you'd need to add it to the allowed sites first.\n\n" +
-              "Spent: profile $0.02, financials $0.05, news $0.01, full report $0.50. Total $0.58. (Replay mode follows a fixed investing script; switch to Claude for open-ended questions.)",
-          },
-        ],
-      };
+      // Summarise what really happened, from the tool results the loop sent back.
+      const results = messages
+        .filter((m) => m.role === "user" && Array.isArray(m.content))
+        .flatMap((m) => m.content as { type?: string; content?: string; is_error?: boolean }[])
+        .filter((b) => b.type === "tool_result");
+      const bought: string[] = [];
+      const failed: string[] = [];
+      let blocked = false;
+      steps.forEach((s, i) => {
+        const r = results[i];
+        if (!s.url || !r || s.url.endsWith("/catalog")) return;
+        const label = labelFor(s.url);
+        if (/policy_host_not_allowed/.test(r.content ?? "")) blocked = true;
+        else if (r.is_error) failed.push(label);
+        else bought.push(label);
+      });
+      const lines = [
+        `Brief on ${company.name} (replay mode: scripted steps, real payments).`,
+        bought.length ? `Bought from Atlas Data: ${bought.join(", ")}.` : "Nothing was bought.",
+        failed.length ? `Couldn't get: ${failed.join(", ")} (failed lookups aren't charged).` : "",
+        blocked ? "QuickLeads was blocked by your spending rules, so there are no executive contacts. Add it to the allowed sites to change that." : "",
+        "Replay mode only runs this fixed investing script. With Claude configured on the hub, the agent answers any question.",
+      ];
+      return { stop_reason: "end_turn", content: [{ type: "text", text: lines.filter(Boolean).join("\n\n") }] };
     }
     const content: ContentBlock[] = [];
     if (step.say) content.push({ type: "text", text: step.say });
@@ -47,4 +58,13 @@ export function replayModel(options: { atlas: string; leads: string; company: { 
     });
     return { stop_reason: "tool_use", content };
   };
+}
+
+function labelFor(url: string): string {
+  if (url.includes("/financials")) return "annual financials";
+  if (url.includes("/reports/")) return "full report";
+  if (url.includes("/companies/")) return "company profile";
+  if (url.includes("/news")) return "recent news";
+  if (url.includes("/leads")) return "executive contacts";
+  return url;
 }

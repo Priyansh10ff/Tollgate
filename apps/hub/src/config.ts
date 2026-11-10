@@ -25,6 +25,8 @@ export interface Config {
   signingKeyJwk?: string;
   /** Whether anyone can create an account on the website. */
   allowSignups: boolean;
+  /** Optional: back the SQLite database up to Supabase Storage (for hosts with a throwaway disk). */
+  backup?: { supabaseUrl: string; supabaseKey: string; bucket: string; intervalSeconds: number };
   /** Hosted demo: the research agent runs on the hub for signed-in users. */
   demo: {
     anthropicApiKey: string;
@@ -68,6 +70,15 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     minPayoutMicros: Math.round(Number(env("MIN_PAYOUT_USD", "1.00")) * 1_000_000),
     signingKeyJwk: env("HUB_SIGNING_KEY") || undefined,
     allowSignups: env("ALLOW_SIGNUPS", "true") !== "false",
+    backup:
+      env("SUPABASE_URL") && env("SUPABASE_SECRET_KEY")
+        ? {
+            supabaseUrl: env("SUPABASE_URL"),
+            supabaseKey: env("SUPABASE_SECRET_KEY"),
+            bucket: env("SUPABASE_BUCKET", "tollgate-backups"),
+            intervalSeconds: Number(env("BACKUP_INTERVAL_SECONDS", "20")),
+          }
+        : undefined,
     demo: {
       anthropicApiKey: env("ANTHROPIC_API_KEY"),
       claudeModel: env("CLAUDE_MODEL"),

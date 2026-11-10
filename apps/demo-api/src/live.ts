@@ -58,8 +58,9 @@ export class DataError extends Error {
 const TIMEOUT_MS = 8000;
 
 export function liveSources(options: { userAgent?: string } = {}): DataSources {
-  // SEC asks automated clients to identify themselves.
-  const userAgent = options.userAgent ?? "Tollgate demo (https://github.com/Priyansh10ff/Tollgate)";
+  // SEC EDGAR only answers clients that identify themselves with a name and contact email,
+  // e.g. SEC_USER_AGENT="Tollgate demo you@example.com".
+  const userAgent = options.userAgent ?? (process.env.SEC_USER_AGENT?.trim() || "Tollgate demo (https://github.com/Priyansh10ff/Tollgate)");
   const cache = new Map<string, { expires: number; value: Promise<unknown> }>();
 
   /** Caches successful lookups; failures are retried next time. */
@@ -81,6 +82,9 @@ export function liveSources(options: { userAgent?: string } = {}): DataSources {
       throw new DataError(502, `${what} is not responding right now`);
     }
     if (res.status === 404) throw new DataError(404, `${what}: not found`);
+    if (res.status === 403 && what === "SEC EDGAR") {
+      throw new DataError(502, 'SEC EDGAR refused the request. The hub needs SEC_USER_AGENT set to a name and contact email, e.g. "Tollgate demo you@example.com".');
+    }
     if (!res.ok) throw new DataError(502, `${what} answered ${res.status}`);
     return (await res.json()) as T;
   }

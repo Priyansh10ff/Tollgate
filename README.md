@@ -191,7 +191,7 @@ Then open the site, sign up, and click **Start the live demo**.
 Notes:
 
 - With `NODE_ENV=production`, the hub refuses to start while `HUB_ADMIN_TOKEN` is `change-me`.
-- The free plan has no persistent disk, so the SQLite ledger resets on each deploy. For real use, attach a disk and set `DB_PATH` to a file on it.
+- The free plan's disk is wiped on every restart, so set `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (free Supabase project): the hub snapshots the SQLite database to Supabase Storage every 20 seconds when something changed and on shutdown, and restores it on startup. It refuses to start if a backup exists but can't be read, so an empty database never overwrites it. Alternatively, attach a persistent disk and set `DB_PATH` to a file on it.
 - Any host that runs Node 22.13+ works the same way: `npm ci --include=dev && npm run build`, then `npm start`.
 
 ## Use the wallet from Claude Desktop (MCP)

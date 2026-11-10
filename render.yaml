@@ -28,6 +28,9 @@ services:
         sync: false
       - key: CLAUDE_MODEL
         sync: false
+      # SEC EDGAR needs a name and contact email, e.g. "Tollgate demo you@example.com".
+      - key: SEC_USER_AGENT
+        sync: false
       - key: DEMO_CLAUDE_RUNS_PER_DAY
         value: "30"
       - key: DEMO_SELLER_PAYPAL_EMAIL
@@ -35,6 +38,11 @@ services:
       - key: DEMO_PAYPAL_BUYER_EMAIL
         sync: false
       - key: DEMO_PAYPAL_BUYER_PASSWORD
+        sync: false
+      # Keeps the database across restarts on the free plan (backups to Supabase Storage).
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
         sync: false
       # One demo run earns the seller $0.57, so let demo sellers cash out from $0.50.
       - key: MIN_PAYOUT_USD

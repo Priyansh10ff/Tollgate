@@ -38,6 +38,15 @@ export function TryDemo({ onStart }: { onStart: () => Promise<void> }) {
   );
 }
 
+/** "HTTP 502\n{"error":"…","charged":false}" → "HTTP 502: … (not charged)" */
+function errorText(summary: string): string {
+  const [status, ...rest] = summary.split("\n");
+  const body = rest.join("\n");
+  const message = body.match(/"error"\s*:\s*"([^"]+)/)?.[1];
+  const free = /"charged"\s*:\s*false/.test(body);
+  return message ? `${status}: ${message}${free ? " (not charged)" : ""}` : summary.split("\n")[0]!;
+}
+
 type Line = { id: number; tone: "say" | "call" | "pay" | "wait" | "stop" | "ok" | "err"; text: string };
 
 /** Lines for the latest run of this agent, built from the hub's live events. */
@@ -57,7 +66,7 @@ function consoleLines(events: HubEvent[], agentId: string) {
     if (e.type === "agent.step" && d.kind === "tool_call")
       lines.push({ id: e.id, tone: "call", text: d.name === "fetch_data" ? `GET ${shortUrl(String(d.input?.url ?? ""))}` : "Checks its wallet and rules" });
     if (e.type === "agent.step" && d.kind === "tool_result" && !d.ok && !/Payment declined/.test(d.summary))
-      lines.push({ id: e.id, tone: "err", text: String(d.summary).split("\n")[0] });
+      lines.push({ id: e.id, tone: "err", text: errorText(String(d.summary)) });
     if (e.type === "charge.completed") lines.push({ id: e.id, tone: "pay", text: `Paid ${usd(d.price)} for ${what}` });
     if (e.type === "approval.requested") lines.push({ id: e.id, tone: "wait", text: `Waiting for you to approve ${usd(d.amount)} for ${what}` });
     if (e.type === "approval.approved") lines.push({ id: e.id, tone: "ok", text: "You approved it" });

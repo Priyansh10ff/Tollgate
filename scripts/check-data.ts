@@ -3,7 +3,10 @@
  *
  *   npm run check-data
  */
+import { existsSync } from "node:fs";
 import { liveSources } from "@tollgate/demo-api";
+
+if (existsSync(".env")) process.loadEnvFile(".env");
 
 const sources = liveSources();
 const checks: [string, () => Promise<unknown>, (v: any) => string][] = [
