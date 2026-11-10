@@ -2,7 +2,7 @@
 # Secrets marked "sync: false" are asked for once when you create the service.
 services:
   - type: web
-    name: tollgate
+    name: usetollgate
     runtime: node
     plan: free
     buildCommand: npm ci --include=dev && npm run build
