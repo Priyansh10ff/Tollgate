@@ -190,7 +190,7 @@
 .db-line.stop, .db-line.err { color: #be123c; }
 .db-line.typing { color: var(--muted); }
 .db-line.typing span:last-child::after { content: "…"; animation: db-blink 1s steps(2) infinite; }
-.db-answer { margin-top: 14px; background: #fff; border: 1px solid var(--line); color: var(--ink); border-radius: 12px; padding: 14px 16px; white-space: pre-wrap; line-height: 1.55; font-size: 14px; }
+.db-answer { margin-top: 14px; background: #fff; border: 1px solid var(--line); color: var(--ink); border-radius: 12px; padding: 16px 20px; line-height: 1.6; font-size: 14.5px; }
 @keyframes db-line-in { from { opacity: 0; transform: translateY(4px); } }
 @keyframes db-blink { 50% { opacity: 0; } }
 @media (max-width: 1400px) { .db-me { display: none; } }
@@ -230,3 +230,16 @@
 .db-pw-toggle:hover { color: var(--ink); background: #f1f1f8; }
 .db-pw-toggle:focus-visible { outline: 2px solid var(--indigo); outline-offset: 1px; }
 .db-run-note { background: #fff8eb; color: #92400e; border-radius: 12px; padding: 10px 14px; line-height: 1.5; }
+
+/* Agent answer (rendered Markdown) */
+.md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
+.md p { margin: 0 0 10px; }
+.md h4 { margin: 16px 0 6px; font-size: 15px; }
+.md ul, .md ol { margin: 0 0 10px; padding-left: 22px; } .md li { margin: 3px 0; }
+.md code { font-family: var(--mono, monospace); font-size: 12.5px; background: #f1f1f8; padding: 1px 5px; border-radius: 5px; }
+.md a { color: var(--indigo); }
+.md-table { overflow-x: auto; margin: 4px 0 12px; }
+.md table { border-collapse: collapse; font-size: 13.5px; min-width: 50%; }
+.md th, .md td { text-align: left; padding: 7px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.md th { font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.md tbody tr:nth-child(even) { background: #fafafe; }

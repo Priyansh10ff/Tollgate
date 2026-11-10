@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { usd, type Agent, type DemoStatus, type HubEvent } from "./api";
 import { shortUrl } from "./OwnerView";
+import { Markdown } from "./Markdown";
 
 const RUN_COST = 580_000; // what the default task spends: $0.02 + $0.05 + $0.01 + $0.50
 
@@ -170,7 +171,7 @@ export function DemoRun({
             ))}
             {!run.answer && !run.failed && <li className="db-line typing"><span className="db-line-mark">·</span><span>working</span></li>}
           </ol>
-          {run.answer && <div className="db-answer">{run.answer}</div>}
+          {run.answer && <div className="db-answer"><Markdown text={run.answer} /></div>}
           {run.failed && <div className="db-error">The run stopped: {run.failed}</div>}
         </div>
       )}
