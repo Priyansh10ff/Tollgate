@@ -430,6 +430,19 @@ export function createApp(hub: Hub) {
   if (existsSync(join(webDist, "index.html"))) {
     app.use(express.static(webDist, { index: "index.html", maxAge: "1h" }));
     app.get(/^\/app(\/.*)?$/, (_req, res) => res.sendFile(join(webDist, "index.html")));
+  } else {
+    // Not built yet: point people to the dev server or the build command instead of a bare 404.
+    app.get(["/", /^\/app(\/.*)?$/], (req, res) => {
+      res.status(503).send(
+        page(
+          "Website not built",
+          `<h1>The website isn't built yet</h1>
+           <p>Either run <code>npm run build</code> and restart the hub, or run <code>npm run dev</code> and open the dev server:</p>
+           <a class="btn" href="http://localhost:5173${escape(req.originalUrl)}">Open localhost:5173${escape(req.originalUrl)}</a>`,
+          "warn",
+        ),
+      );
+    });
   }
 
   // ── Errors ──────────────────────────────────────────────────

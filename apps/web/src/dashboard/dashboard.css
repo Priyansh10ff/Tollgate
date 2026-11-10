@@ -192,3 +192,5 @@
 @keyframes db-line-in { from { opacity: 0; transform: translateY(4px); } }
 @keyframes db-blink { 50% { opacity: 0; } }
 @media (max-width: 1400px) { .db-me { display: none; } }
+
+.db-demo-hint { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; background: var(--indigo-soft); font-size: 14px; }

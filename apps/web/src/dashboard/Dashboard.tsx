@@ -172,8 +172,11 @@ function Signed({ token, onAuthFail, onSignOut }: { token: string; onAuthFail: (
     }
   }, [api, onAuthFail]);
 
-  // Default to the newest agent (the one `npm run try setup` just created).
-  const agent = overview?.agents.find((a) => a.id === agentId) ?? overview?.agents.at(-1);
+  // Default to the live demo agent if there is one, else the newest agent.
+  const agent =
+    overview?.agents.find((a) => a.id === agentId) ??
+    overview?.agents.find((a) => a.id === demo?.agentId) ??
+    overview?.agents.at(-1);
   const seller =
     overview?.sellers.find((s) => s.id === sellerId) ??
     [...(overview?.sellers ?? [])].reverse().find((s) => !!s.paypalEmail) ??
@@ -378,6 +381,13 @@ function Signed({ token, onAuthFail, onSignOut }: { token: string; onAuthFail: (
           />
         ) : (
           <CreateSeller onCreate={createSeller} />
+        )}
+
+        {overview && isOwner && !created && !panel && agent && demo?.ready && demo.agentId !== agent.id && (
+          <div className="db-card db-demo-hint">
+            <span>Your live demo is ready on <strong>Research Agent</strong>.</span>
+            <button type="button" className="db-btn soft small" onClick={() => setAgentId(demo.agentId!)}>Open the live demo</button>
+          </div>
         )}
 
         {overview && isOwner && !created && !panel && agent && demo?.ready && demo.agentId === agent.id && (
