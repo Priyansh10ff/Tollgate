@@ -264,7 +264,7 @@ export function DemoDashboard() {
           </div>
         </div>
 
-        <p className="demo-note muted small rv3">Interactive demo with sample data. It runs in your browser and no real money moves. <a href="/app">Open the real dashboard →</a></p>
+        <p className="demo-note muted small rv3">Interactive demo with sample data. It runs in your browser and no real money moves. <a href="/app?signup">Try the live version with real PayPal sandbox →</a></p>
       </div>
     </section>
   );

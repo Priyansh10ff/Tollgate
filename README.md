@@ -140,9 +140,21 @@ Watch the payments arrive at http://localhost:5173/app.
 
 The agent reads the free catalog, buys a company profile, financials and news for a few cents each, then asks to buy a $0.50 analyst report. That pauses until you approve it in the dashboard (or run `npm run try approve`). Finally it tries to buy executive contacts from QuickLeads and is blocked by its spending rules. Ask it something else with `npm run agent -- "Is Lumen Health a good investment?"`.
 
+## Accounts and the live demo
+
+Anyone can sign up at `/app` with an email and password and gets a private workspace: their own agent wallets and sellers. Nobody else can see or change them. The hub's `HUB_ADMIN_TOKEN` still works as a super-admin login that sees everything.
+
+From the dashboard, users can:
+
+- **Create an agent wallet** and copy its API key (shown once; a new one can be issued later).
+- **Register as a seller** with a PayPal email and copy the one-line middleware.
+- **Start the live demo**: one click creates a Research Agent and two demo sellers, Atlas Data (`atlas.demo`) and QuickLeads (`quickleads.demo`). The sellers and the agent run inside the hub, so visitors only need a browser. Top up with PayPal sandbox, press **Run the agent**, approve the $0.50 report, and watch QuickLeads get blocked. Then cash out as the seller.
+
+The demo agent uses Claude when `ANTHROPIC_API_KEY` and `CLAUDE_MODEL` are set, up to `DEMO_CLAUDE_RUNS_PER_DAY` runs a day (5 per user). After that it switches to a scripted replay: the reasoning is scripted, but the 402s, payments, approvals and blocks are still real. It can only reach the two demo sellers and the hub, never other URLs.
+
 ## Dashboard
 
-Open `/app` and sign in with your `HUB_ADMIN_TOKEN`. Switch between two views:
+Open `/app` and log in. Switch between two views:
 
 - **Owner:** the agent's wallet, today's spend against the daily limit, payments waiting for your approval (Approve / Deny), editable spending rules, and a live timeline. "Add $10 with PayPal" opens a real PayPal sandbox checkout.
 - **Seller:** what agents paid you, earnings by item, and "Cash out via PayPal" (PayPal Payouts, from $1.00).
@@ -168,14 +180,13 @@ The hub serves the website too, so one web service runs everything: landing page
 2. Fill in the secrets it asks for:
    - `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`: your PayPal sandbox app.
    - `HUB_SIGNING_KEY`: output of `npm run signing-key`, so receipts keep verifying after a redeploy.
+   - `ANTHROPIC_API_KEY`, `CLAUDE_MODEL`: for the live demo agent (optional; without them it runs in replay mode).
+   - `DEMO_SELLER_PAYPAL_EMAIL`: a sandbox Personal account that receives the demo sellers' payouts.
+   - `DEMO_PAYPAL_BUYER_EMAIL`, `DEMO_PAYPAL_BUYER_PASSWORD` (optional): a sandbox Personal login shown in the demo so visitors can finish the PayPal sandbox checkout.
    - `HUB_ADMIN_TOKEN` is generated for you. Find it under the service's **Environment** tab and use it to sign in at `/app`.
 3. Deploy. `HUB_URL` defaults to the service's public URL, which is also where PayPal sends buyers back after checkout.
 
-Create the demo agent and sellers on the deployed hub from your machine:
-
-```bash
-HUB_URL=https://your-service.onrender.com HUB_ADMIN_TOKEN=... npm run try setup --force
-```
+Then open the site, sign up, and click **Start the live demo**.
 
 Notes:
 
@@ -240,12 +251,22 @@ Amounts in JSON are integer micros unless the field name ends in `Usd`.
 | `GET` | `/v1/approvals/:id` | Status of a pending approval |
 | `GET` | `/.well-known/tollgate.json` | Hub's public keys for verifying receipts (no auth) |
 
-**Admin endpoints** (`Authorization: Bearer <HUB_ADMIN_TOKEN>`):
+**Accounts** (no auth):
 
 | Method | Path | Description |
 |---|---|---|
+| `POST` | `/api/auth/signup` | Create an account `{ email, password }`. Returns a session token. |
+| `POST` | `/api/auth/login` | Log in `{ email, password }`. Returns a session token. |
+
+**Dashboard endpoints** (`Authorization: Bearer <session token or HUB_ADMIN_TOKEN>`). A session only sees and changes its own agents and sellers; the admin token sees everything. Endpoints marked *admin* need the admin token.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/auth/me` | Who is logged in |
+| `POST` | `/api/auth/logout` | End this session |
 | `POST` | `/api/agents` | Create an agent wallet `{ name, policy? }`. Returns its API key once. |
 | `PATCH` | `/api/agents/:id/policy` | Update spending limits |
+| `POST` | `/api/agents/:id/key` | Issue a new API key (the old one stops working) |
 | `POST` | `/api/agents/:id/topups` | Start a PayPal top-up `{ amountUsd }`. Returns the approval link. |
 | `POST` | `/api/sellers` | Create a seller `{ name, paypalEmail }`. Returns its API key once. |
 | `POST` | `/api/sellers/:id/payouts` | Pay out earnings via PayPal Payouts `{ amountUsd? }` |
@@ -255,7 +276,10 @@ Amounts in JSON are integer micros unless the field name ends in `Usd`.
 | `GET` | `/api/receipts` | Recent paid requests |
 | `GET` | `/api/overview` | Agents, sellers, balances and ledger audit |
 | `GET` | `/api/ledger/txns` | Recent ledger transactions |
-| `GET` | `/api/ledger/audit` | Verify the ledger balances |
+| `GET` | `/api/ledger/audit` | Verify the ledger balances (*admin*) |
+| `GET` | `/api/demo` | Live demo status |
+| `POST` | `/api/demo/setup` | Create this user's demo agent and sellers |
+| `POST` | `/api/demo/run` | Run the research agent on the hub `{ task? }`. Progress arrives as `agent.*` events. |
 | `GET` | `/api/events` | Live event stream (Server-Sent Events) |
 | `GET` | `/paypal/return` | Where PayPal sends the buyer after approving a top-up |
 

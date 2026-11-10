@@ -9,7 +9,9 @@ export const ADMIN = "test-admin-token";
 
 /** A hub with an in-memory database and simulated PayPal. */
 export function testHub() {
-  const config = loadConfig({ dbPath: ":memory:", adminToken: ADMIN, hubUrl: "http://hub.test", feeBps: 100 });
+  const base = loadConfig({ dbPath: ":memory:", adminToken: ADMIN, hubUrl: "http://hub.test", feeBps: 100 });
+  // Never call Claude or show sandbox logins from tests, whatever is in .env.
+  const config = { ...base, demo: { ...base.demo, anthropicApiKey: "", buyerEmail: "", buyerPassword: "", sellerPaypalEmail: "atlas@example.com" } };
   const paypal = new PayPalMock(config.hubUrl);
   const hub = createHub(config, { db: openDb(":memory:"), paypal });
   return { hub, paypal };
@@ -23,6 +25,7 @@ export async function testServer() {
     const s = app.listen(0, () => resolve(s));
   });
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  hub.demo.internalHubUrl = base;
   const api = async (method: string, path: string, body?: unknown, token = ADMIN) => {
     const res = await fetch(`${base}${path}`, {
       method,
@@ -32,5 +35,16 @@ export async function testServer() {
     const text = await res.text();
     return { status: res.status, body: text.startsWith("{") ? JSON.parse(text) : text };
   };
-  return { hub, paypal, base, api, close: () => new Promise<void>((r) => server.close(() => r())) };
+  return {
+    hub,
+    paypal,
+    base,
+    api,
+    close: () =>
+      new Promise<void>((r) => {
+        hub.demo.close();
+        server.closeAllConnections();
+        server.close(() => r());
+      }),
+  };
 }

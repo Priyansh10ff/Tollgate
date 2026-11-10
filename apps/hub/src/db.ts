@@ -108,6 +108,22 @@ CREATE TABLE IF NOT EXISTS approvals (
   created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+-- People who sign up on the website. Each one owns their own agents and sellers.
+CREATE TABLE IF NOT EXISTS users (
+  id             TEXT PRIMARY KEY,
+  email          TEXT NOT NULL UNIQUE,
+  password_hash  TEXT NOT NULL,
+  created_at     TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+-- Dashboard sessions. Only a hash of the token is stored.
+CREATE TABLE IF NOT EXISTS sessions (
+  token_hash  TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL REFERENCES users(id),
+  expires_at  TEXT NOT NULL,
+  created_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
 CREATE TABLE IF NOT EXISTS payouts (
   id                 TEXT PRIMARY KEY,
   seller_id          TEXT NOT NULL REFERENCES sellers(id),
@@ -129,11 +145,24 @@ export function openDb(path: string): DB {
   db.exec("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;");
   if (path !== ":memory:") db.exec("PRAGMA journal_mode = WAL;");
   db.exec(SCHEMA);
+  migrate(db);
   const insert = db.prepare("INSERT OR IGNORE INTO accounts (id, kind, name) VALUES (?, 'system', ?)");
   insert.run(SYSTEM_ACCOUNTS.paypalIn, "PayPal top-ups");
   insert.run(SYSTEM_ACCOUNTS.paypalOut, "PayPal payouts");
   insert.run(SYSTEM_ACCOUNTS.fees, "Tollgate fees");
   return db;
+}
+
+/** Adds columns introduced after a database was first created. */
+function migrate(db: DB) {
+  for (const table of ["agents", "sellers"]) {
+    const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+    if (!columns.some((c) => c.name === "owner_id")) {
+      // NULL owner = created with the admin token (for example by `npm run try setup`).
+      db.exec(`ALTER TABLE ${table} ADD COLUMN owner_id TEXT REFERENCES users(id)`);
+    }
+    db.exec(`CREATE INDEX IF NOT EXISTS ${table}_by_owner ON ${table}(owner_id)`);
+  }
 }
 
 const depth = new WeakMap<DB, number>();

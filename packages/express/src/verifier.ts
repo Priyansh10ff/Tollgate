@@ -32,7 +32,8 @@ export class MemoryReplayStore implements ReplayStore {
 
 export interface VerifierOptions {
   hubUrl: string;
-  sellerId: string;
+  /** Default seller id to check receipts against. Can be overridden per call. */
+  sellerId?: string;
   replayStore?: ReplayStore;
   fetch?: typeof fetch;
   /** How long to cache the hub's public keys, in ms. */
@@ -55,13 +56,15 @@ export class ReceiptVerifier {
     this.replay = options.replayStore ?? new MemoryReplayStore();
   }
 
-  async verify(token: string, expected: { resource: string; minAmount: number }): Promise<ReceiptClaims> {
+  async verify(token: string, expected: { resource: string; minAmount: number; sellerId?: string }): Promise<ReceiptClaims> {
+    const seller = expected.sellerId ?? this.options.sellerId;
+    if (!seller) throw new Error("ReceiptVerifier: no seller id to verify against");
     await this.ensureKeys(false);
     const check = () =>
       verifyReceipt(token, {
         keys: this.keys,
         issuer: this.hubUrl,
-        seller: this.options.sellerId,
+        seller,
         resource: expected.resource,
         minAmount: expected.minAmount,
       });

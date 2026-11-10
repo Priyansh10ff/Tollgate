@@ -12,6 +12,8 @@ const hub = createHub(config);
 const app = createApp(hub);
 
 const server = app.listen(config.port, () => {
+  // The hosted demo agent calls the hub over loopback instead of the public URL.
+  hub.demo.internalHubUrl = `http://127.0.0.1:${config.port}`;
   const mode = hub.paypal.mode;
   console.log(`\nTollgate hub running at ${config.hubUrl}`);
   console.log(`PayPal: ${mode === "mock" ? "SIMULATED (no PayPal keys in .env)" : mode}`);
@@ -24,6 +26,7 @@ const timer = setInterval(() => void hub.payouts.refreshAll(), 30_000);
 
 function shutdown() {
   clearInterval(timer);
+  hub.demo.close();
   server.close(() => {
     hub.db.close();
     process.exit(0);

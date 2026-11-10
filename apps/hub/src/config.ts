@@ -23,6 +23,20 @@ export interface Config {
   minPayoutMicros: number;
   /** Optional private JWK (JSON) for signing receipts. Otherwise one is generated and stored in the DB. */
   signingKeyJwk?: string;
+  /** Whether anyone can create an account on the website. */
+  allowSignups: boolean;
+  /** Hosted demo: the research agent runs on the hub for signed-in users. */
+  demo: {
+    anthropicApiKey: string;
+    claudeModel: string;
+    /** Claude-powered runs allowed per UTC day across all users. After that, runs use the replay model. */
+    claudeRunsPerDay: number;
+    /** PayPal email for the demo Atlas Data seller's payouts (a sandbox Personal account). */
+    sellerPaypalEmail: string;
+    /** Optional sandbox buyer login shown in the demo, so visitors can finish a PayPal sandbox checkout. */
+    buyerEmail: string;
+    buyerPassword: string;
+  };
   /** Where the website/dashboard is served: the hub itself after `npm run build`, else the Vite dev server. */
   webUrl: string;
 }
@@ -51,8 +65,17 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     dbPath: env("DB_PATH", join(REPO_ROOT, "data", "tollgate.db")),
     paypal: { mode, clientId, clientSecret, apiBase },
     feeBps: Number(env("TOLLGATE_FEE_BPS", "100")),
-    minPayoutMicros: 1_000_000,
+    minPayoutMicros: Math.round(Number(env("MIN_PAYOUT_USD", "1.00")) * 1_000_000),
     signingKeyJwk: env("HUB_SIGNING_KEY") || undefined,
+    allowSignups: env("ALLOW_SIGNUPS", "true") !== "false",
+    demo: {
+      anthropicApiKey: env("ANTHROPIC_API_KEY"),
+      claudeModel: env("CLAUDE_MODEL"),
+      claudeRunsPerDay: Number(env("DEMO_CLAUDE_RUNS_PER_DAY", "30")),
+      sellerPaypalEmail: env("DEMO_SELLER_PAYPAL_EMAIL"),
+      buyerEmail: env("DEMO_PAYPAL_BUYER_EMAIL"),
+      buyerPassword: env("DEMO_PAYPAL_BUYER_PASSWORD"),
+    },
     webUrl: env("WEB_URL", built ? hubUrl : "http://localhost:5173").replace(/\/+$/, ""),
     ...overrides,
   };

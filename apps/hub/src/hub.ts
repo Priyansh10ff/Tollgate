@@ -10,6 +10,10 @@ import { Payouts } from "./services/payouts.ts";
 import { Charges } from "./services/charges.ts";
 import { Approvals } from "./services/approvals.ts";
 import { Payments } from "./services/payments.ts";
+import { Users } from "./services/users.ts";
+import { Demo } from "./services/demo.ts";
+import { publicKeys } from "./keys.ts";
+import type { ModelCall } from "@tollgate/demo-agent";
 
 export interface Hub {
   config: Config;
@@ -24,10 +28,15 @@ export interface Hub {
   charges: Charges;
   approvals: Approvals;
   payments: Payments;
+  users: Users;
+  demo: Demo;
 }
 
 /** Wires up all hub services. Tests pass an in-memory db and a mock PayPal. */
-export function createHub(config: Config, deps: { db?: DB; paypal?: PayPalGateway } = {}): Hub {
+export function createHub(
+  config: Config,
+  deps: { db?: DB; paypal?: PayPalGateway; demoModel?: (company: { slug: string; name: string }) => ModelCall } = {},
+): Hub {
   const db = deps.db ?? openDb(config.dbPath);
   const ledger = new Ledger(db);
   const events = new EventBus();
@@ -48,6 +57,8 @@ export function createHub(config: Config, deps: { db?: DB; paypal?: PayPalGatewa
     approvals,
     topups: new Topups(db, ledger, participants, paypal, events, config.hubUrl),
     payouts: new Payouts(db, ledger, participants, paypal, events, config.minPayoutMicros),
+    users: new Users(db),
+    demo: new Demo(db, participants, events, config, () => publicKeys(config.hubUrl, signingKey), deps.demoModel),
     payments: new Payments(db, ledger, participants, charges, approvals, events, signingKey, config.hubUrl),
   };
 }

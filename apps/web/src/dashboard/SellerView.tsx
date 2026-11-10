@@ -10,7 +10,6 @@ interface Props {
   onPayout: () => void;
 }
 
-const MIN_PAYOUT = 1_000_000;
 
 export function SellerView({ overview, seller, onPickSeller, payouts, txns, onPayout }: Props) {
   // Earnings by item, from this seller's side of each charge in the ledger.
@@ -26,8 +25,9 @@ export function SellerView({ overview, seller, onPickSeller, payouts, txns, onPa
   }
   const items = [...byItem.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
   const top = Math.max(1, ...items.map(([, v]) => v));
+  const MIN_PAYOUT = overview.minPayout ?? 1_000_000;
   const canPay = seller.balance >= MIN_PAYOUT && !!seller.paypalEmail;
-  const reason = !seller.paypalEmail ? "Add a PayPal email to this seller to cash out" : seller.balance < MIN_PAYOUT ? `Cash out from $1.00 · ${usd(MIN_PAYOUT - seller.balance)} to go` : "";
+  const reason = !seller.paypalEmail ? "Add a PayPal email to this seller to cash out" : seller.balance < MIN_PAYOUT ? `Cash out from ${usd(MIN_PAYOUT, 2)} · ${usd(MIN_PAYOUT - seller.balance)} to go` : "";
 
   return (
     <div className="db-hero seller">
@@ -61,7 +61,7 @@ export function SellerView({ overview, seller, onPickSeller, payouts, txns, onPa
       <div className="db-card earned" id="rules">
         <div className="row-between"><span className="strong">Earned by item</span><span className="muted small">{requests} paid requests</span></div>
         <div className="earned-list">
-          {items.length === 0 && <div className="muted small">No paid requests yet. Run the demo agent to see earnings arrive.</div>}
+          {items.length === 0 && <div className="muted small">No paid requests yet. Earnings show up here as agents pay you.</div>}
           {items.map(([label, value]) => (
             <div key={label}>
               <div className="row-between small"><span>{label}</span><span className="mono">{usd(value)}</span></div>

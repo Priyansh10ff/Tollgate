@@ -12,10 +12,12 @@
   "dependencies": {
     "@tollgate/protocol": "*",
     "express": "^5.1.0",
-    "zod": "^4.0.0"
+    "zod": "^4.0.0",
+    "@tollgate/demo-agent": "*",
+    "@tollgate/demo-api": "*",
+    "@tollgate/client": "*"
   },
   "devDependencies": {
-    "@tollgate/client": "*",
     "@tollgate/express": "*",
     "@types/express": "^5.0.0"
   }

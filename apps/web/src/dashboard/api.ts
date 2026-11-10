@@ -25,6 +25,8 @@ export interface Overview {
   hubUrl?: string;
   paypalMode: "sandbox" | "live" | "mock";
   feeBps: number;
+  minPayout?: number;
+  me?: { kind: "admin" } | { kind: "user"; email: string };
   agents: Agent[];
   sellers: Seller[];
   audit: { ok: boolean; txnCount: number };
@@ -62,7 +64,34 @@ export interface HubEvent {
   data: Record<string, any>;
 }
 
+export interface DemoStatus {
+  ready: boolean;
+  agentId?: string;
+  atlasSellerId?: string;
+  running: boolean;
+  mode: "claude" | "replay";
+  tasks: string[];
+  sources: string[];
+  sandboxBuyer?: { email: string; password: string };
+}
+
 export class AuthError extends Error {}
+
+/** Logs in or signs up. Returns a session token for HubApi. */
+export async function authenticate(mode: "login" | "signup", email: string, password: string): Promise<string> {
+  const res = await fetch(`/api/auth/${mode}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const issue = data?.error?.details?.[0];
+    const field = issue?.path?.[0];
+    throw new Error(field ? `${field === "email" ? "Enter a valid email" : issue.message}.` : data?.error?.message ?? `Request failed (${res.status})`);
+  }
+  return data.token as string;
+}
 
 export const EVENT_TYPES = [
   "charge.completed",
@@ -76,6 +105,10 @@ export const EVENT_TYPES = [
   "payout.paid",
   "payout.unclaimed",
   "payout.failed",
+  "agent.started",
+  "agent.step",
+  "agent.finished",
+  "agent.failed",
 ];
 
 export class HubApi {
@@ -88,11 +121,20 @@ export class HubApi {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.status === 401) throw new AuthError("Wrong admin token");
+    if (res.status === 401) throw new AuthError(data?.error?.message ?? "Please log in again");
     if (!res.ok) throw new Error(data?.error?.message ?? `Request failed (${res.status})`);
     return data as T;
   }
 
+  demo = () => this.call<DemoStatus>("GET", "/api/demo");
+  demoSetup = () => this.call<DemoStatus & { agentId: string }>("POST", "/api/demo/setup");
+  demoRun = (task: string) => this.call<{ runId: string; mode: "claude" | "replay" }>("POST", "/api/demo/run", { task });
+  logout = () => this.call("POST", "/api/auth/logout");
+  createAgent = (name: string) => this.call<{ agent: Agent; apiKey: string }>("POST", "/api/agents", { name });
+  newAgentKey = (agentId: string) => this.call<{ agent: Agent; apiKey: string }>("POST", `/api/agents/${agentId}/key`);
+  createSeller = (name: string, paypalEmail?: string) =>
+    this.call<{ seller: Seller; apiKey: string }>("POST", "/api/sellers", { name, ...(paypalEmail && { paypalEmail }) });
+  updateSellerEmail = (sellerId: string, paypalEmail: string) => this.call("PATCH", `/api/sellers/${sellerId}`, { paypalEmail });
   overview = () => this.call<Overview>("GET", "/api/overview");
   pendingApprovals = () => this.call<{ approvals: Approval[] }>("GET", "/api/approvals?status=pending").then((r) => r.approvals);
   approve = (id: string) => this.call("POST", `/api/approvals/${id}/approve`);

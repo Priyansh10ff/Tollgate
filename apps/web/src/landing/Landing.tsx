@@ -72,7 +72,8 @@ export function Landing() {
           <a href="#how">How it works</a>
           <a href="#code">Developers</a>
           <a href="#pricing">Pricing</a>
-          <a href="/app" className="lb-nav-cta">Open dashboard</a>
+          <a href="/app" className="lb-nav-link-quiet">Log in</a>
+          <a href="/app?signup" className="lb-nav-cta">Sign up free</a>
         </div>
       </nav>
 
@@ -232,7 +233,7 @@ export function Landing() {
         <section data-tone="mint" className="lb-section final">
           <h2 className="serif rv">Every request,<br /><em>paid for.</em></h2>
           <div className="hero-cta center rv2">
-            <a className="btn-primary" href="/app">Start charging agents</a>
+            <a className="btn-primary" href="/app?signup">Start charging agents</a>
             <a className="btn-white" href="#how">Read the protocol</a>
           </div>
         </section>

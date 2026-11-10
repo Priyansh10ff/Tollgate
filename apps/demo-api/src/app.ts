@@ -2,12 +2,21 @@ import express, { type Request } from "express";
 import { tollgate } from "@tollgate/express";
 import { COMPANIES, findCompany } from "./data.ts";
 
+export { COMPANIES } from "./data.ts";
+
+type PerRequest<T> = T | ((req: Request) => T);
+
 export interface DemoApiOptions {
   hubUrl: string;
   /** Seller id for Atlas Data, the trustworthy demo API. */
-  atlasSellerId: string;
+  atlasSellerId: PerRequest<string>;
   /** Seller id for QuickLeads, an unvetted site the demo agent isn't allowed to pay. */
-  quickLeadsSellerId: string;
+  quickLeadsSellerId: PerRequest<string>;
+  /** Public base URLs to put in quotes (when the APIs are reached through a proxy). */
+  atlasBaseUrl?: string;
+  quickLeadsBaseUrl?: string;
+  /** Fetch used to load the hub's receipt keys. */
+  fetch?: typeof fetch;
 }
 
 interface Endpoint {
@@ -23,8 +32,10 @@ interface Endpoint {
  *  - QuickLeads: a "contact list" site. The demo agent's spending rules don't allow it.
  */
 export function createDemoApis(options: DemoApiOptions) {
-  const gate = (sellerId: string, price: string, description: string | ((req: Request) => string)) =>
-    tollgate({ hubUrl: options.hubUrl, sellerId, price, description });
+  const gateFor = (sellerId: PerRequest<string>, baseUrl?: string) => (price: string, description: (req: Request) => string) =>
+    tollgate({ hubUrl: options.hubUrl, sellerId, price, description, baseUrl, fetch: options.fetch });
+  const atlasGate = gateFor(options.atlasSellerId, options.atlasBaseUrl);
+  const leadsGate = gateFor(options.quickLeadsSellerId, options.quickLeadsBaseUrl);
 
   // ── Atlas Data ──────────────────────────────────────────────
   const atlas = express();
@@ -57,26 +68,26 @@ export function createDemoApis(options: DemoApiOptions) {
   const withCompany = (req: Request) => findCompany(String(req.params.slug ?? req.query.company ?? ""));
   const companyName = (req: Request) => withCompany(req)?.name ?? String(req.params.slug ?? req.query.company);
 
-  atlas.get("/v1/companies/:slug", gate(options.atlasSellerId, "0.02", (req) => `Company profile: ${companyName(req)}`), (req, res) => {
+  atlas.get("/v1/companies/:slug", atlasGate("0.02", (req) => `Company profile: ${companyName(req)}`), (req, res) => {
     const c = withCompany(req);
     if (!c) return void res.status(404).json({ error: "Unknown company" });
     const { slug, name, sector, founded, hq, employees, summary } = c;
     res.json({ slug, name, sector, founded, hq, employees, summary });
   });
 
-  atlas.get("/v1/companies/:slug/financials", gate(options.atlasSellerId, "0.05", (req) => `Financials: ${companyName(req)}`), (req, res) => {
+  atlas.get("/v1/companies/:slug/financials", atlasGate("0.05", (req) => `Financials: ${companyName(req)}`), (req, res) => {
     const c = withCompany(req);
     if (!c) return void res.status(404).json({ error: "Unknown company" });
     res.json({ company: c.name, currency: "USD", ...c.financials, note: "Revenue, income, cash and debt in millions" });
   });
 
-  atlas.get("/v1/news", gate(options.atlasSellerId, "0.01", (req) => `News: ${companyName(req)}`), (req, res) => {
+  atlas.get("/v1/news", atlasGate("0.01", (req) => `News: ${companyName(req)}`), (req, res) => {
     const c = withCompany(req);
     if (!c) return void res.status(404).json({ error: "Unknown company. Use ?company={slug}" });
     res.json({ company: c.name, articles: c.news });
   });
 
-  atlas.get("/v1/reports/:slug", gate(options.atlasSellerId, "0.50", (req) => `Analyst report: ${companyName(req)}`), (req, res) => {
+  atlas.get("/v1/reports/:slug", atlasGate("0.50", (req) => `Analyst report: ${companyName(req)}`), (req, res) => {
     const c = withCompany(req);
     if (!c) return void res.status(404).json({ error: "Unknown company" });
     res.json({ company: c.name, ...c.report, valuationRangeUsdM: c.report.valuationM, analyst: "Atlas Research (demo)" });
@@ -93,7 +104,7 @@ export function createDemoApis(options: DemoApiOptions) {
       endpoints: [{ method: "GET", path: "/v1/leads?company={slug}", price: "0.40", description: "Direct phone numbers and emails of company executives" }],
     });
   });
-  quickLeads.get("/v1/leads", gate(options.quickLeadsSellerId, "0.40", (req) => `Executive contacts: ${companyName(req)}`), (req, res) => {
+  quickLeads.get("/v1/leads", leadsGate("0.40", (req) => `Executive contacts: ${companyName(req)}`), (req, res) => {
     res.json({ company: companyName(req), contacts: [{ name: "(demo)", role: "CEO", email: "ceo@example.com" }] });
   });
 

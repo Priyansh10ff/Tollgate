@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { LogoMark } from "../Logo";
 import { usd, type Agent, type Approval, type HubEvent, type Overview } from "./api";
 
 type PolicyPatch = Partial<{ dailyLimitUsd: string; maxPerRequestUsd: string; approvalAboveUsd: string; allowedHosts: string[] }>;
@@ -70,7 +71,7 @@ export function OwnerView({ overview, agent, onPickAgent, pending, events, onApp
           <div className="row-between"><span className="strong">Needs you</span><span className="muted small">{pending.length} waiting</span></div>
           {pending.map((a) => (
             <div key={a.id} className="notif-card">
-              <div className="notif-card-head"><div className="notif-icon serif">T</div><div className="muted small">{agent.name} · {timeAgo(a.createdAt)}</div></div>
+              <div className="notif-card-head"><LogoMark size={28} className="notif-icon" /><div className="muted small">{agent.name} · {timeAgo(a.createdAt)}</div></div>
               <div className="notif-card-title">Spend {usd(a.amount)} on {a.description ?? new URL(a.url).pathname}?</div>
               <div className="muted small">{sellerName(a.sellerId)} · over your {usd(policy.approvalAbove, 2)} ask-me limit</div>
               <div className="notif-card-actions">

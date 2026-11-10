@@ -23,3 +23,19 @@ services:
         value: https://api-m.sandbox.paypal.com
       - key: TOLLGATE_FEE_BPS
         value: "100"
+      # Hosted demo: the research agent runs on the hub for signed-in visitors.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLAUDE_MODEL
+        sync: false
+      - key: DEMO_CLAUDE_RUNS_PER_DAY
+        value: "30"
+      - key: DEMO_SELLER_PAYPAL_EMAIL
+        sync: false
+      - key: DEMO_PAYPAL_BUYER_EMAIL
+        sync: false
+      - key: DEMO_PAYPAL_BUYER_PASSWORD
+        sync: false
+      # One demo run earns the seller $0.57, so let demo sellers cash out from $0.50.
+      - key: MIN_PAYOUT_USD
+        value: "0.50"

@@ -123,6 +123,14 @@ export class Ledger {
     }));
   }
 
+  /** Number of transactions that touch any of these accounts. */
+  countTxns(accountIds: string[]): number {
+    if (accountIds.length === 0) return 0;
+    const marks = accountIds.map(() => "?").join(",");
+    const row = this.db.prepare(`SELECT COUNT(DISTINCT txn_id) AS c FROM entries WHERE account_id IN (${marks})`).get(...accountIds) as { c: number };
+    return row.c;
+  }
+
   /**
    * Audits the whole ledger: every txn balances, the global sum is zero,
    * and no wallet or seller account is negative.

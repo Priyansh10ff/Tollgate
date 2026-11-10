@@ -82,7 +82,7 @@ export function Hero({ top, vh, vw, boot }: { top: number; vh: number; vw: numbe
                 <p className="hero-body">{c.body}</p>
                 {c.cta && (
                   <div className="hero-cta">
-                    <a className="btn-primary" href="/app">Charge agents per request</a>
+                    <a className="btn-primary" href="/app?signup">Try the live demo</a>
                     <a className="btn-link" href="#how">See how it works →</a>
                   </div>
                 )}

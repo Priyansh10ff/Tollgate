@@ -61,7 +61,7 @@ export function Timeline({ events, role, agentId, sellerId }: { events: HubEvent
       </div>
       {rows.length === 0 ? (
         <div className="muted small timeline-empty">
-          Nothing yet. Start the demo with <span className="mono">npm run dev</span> and <span className="mono">npm run agent</span>, and payments will appear here as they happen.
+          Nothing yet. Payments, approvals and blocks show up here the moment they happen.
         </div>
       ) : (
         <ol className="tl">
