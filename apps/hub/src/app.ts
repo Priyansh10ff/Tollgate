@@ -19,6 +19,7 @@ import { REPO_ROOT } from "./config.ts";
 export function createApp(hub: Hub) {
   const app = express();
   app.disable("x-powered-by");
+  app.set("trust proxy", 1);
   app.use(express.json({ limit: "100kb" }));
 
   const usd = z
@@ -281,7 +282,7 @@ export function createApp(hub: Hub) {
 
   // Live event stream for the dashboard. EventSource can't send headers, so ?token= is accepted.
   admin.get("/events", (req, res) => {
-    res.set({ "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" });
+    res.set({ "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive", "X-Accel-Buffering": "no" });
     res.flushHeaders();
     const send = (event: { id: number; type: string }) => res.write(`id: ${event.id}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
     const lastId = Number(req.get("Last-Event-ID") ?? req.query.after ?? 0) || 0;

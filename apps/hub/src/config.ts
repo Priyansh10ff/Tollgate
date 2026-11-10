@@ -41,7 +41,7 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     explicitMode || (!clientId || !clientSecret ? "mock" : apiBase.includes("sandbox") ? "sandbox" : "live");
 
   const port = Number(env("PORT") || env("HUB_PORT", "4000"));
-  const hubUrl = env("HUB_URL", `http://localhost:${port}`).replace(/\/+$/, "");
+  const hubUrl = (env("HUB_URL") || env("RENDER_EXTERNAL_URL") || `http://localhost:${port}`).replace(/\/+$/, "");
   const built = existsSync(join(REPO_ROOT, "apps", "web", "dist", "index.html"));
 
   return {

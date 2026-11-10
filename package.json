@@ -24,12 +24,15 @@
     "build": "npm run build -w @tollgate/web",
     "start": "npm run start -w @tollgate/hub",
     "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"packages/*/test/*.test.ts\" \"apps/*/test/*.test.ts\" \"test/*.test.ts\"",
-    "typecheck": "tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json && tsc -p apps/web/tsconfig.json",
+    "signing-key": "node --import tsx scripts/signing-key.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.19.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "concurrently": "^9.2.5",
-    "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }
 }

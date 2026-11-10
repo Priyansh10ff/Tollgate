@@ -3,6 +3,11 @@ import { createHub } from "./hub.ts";
 import { createApp } from "./app.ts";
 
 const config = loadConfig();
+
+if (process.env.NODE_ENV === "production" && (!config.adminToken || config.adminToken === "change-me")) {
+  console.error('Refusing to start: set HUB_ADMIN_TOKEN to a long random value (it is still "change-me").');
+  process.exit(1);
+}
 const hub = createHub(config);
 const app = createApp(hub);
 

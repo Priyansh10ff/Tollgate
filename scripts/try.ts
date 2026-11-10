@@ -63,7 +63,9 @@ const usd = (micros: number) => `$${microsToUsd(micros)}`;
 
 const commands: Record<string, (args: string[]) => Promise<void>> = {
   async setup(args) {
-    if (existsSync(DEMO_FILE) && !args.includes("--force")) {
+    // npm keeps "--force" for itself and exposes it as npm_config_force.
+    const force = args.includes("--force") || process.env.npm_config_force === "true";
+    if (existsSync(DEMO_FILE) && !force) {
       console.log("Demo agent and seller already exist (use --force to create new ones).");
       return commands.status([]);
     }

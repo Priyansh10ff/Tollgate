@@ -160,6 +160,29 @@ npm run build
 npm start        # landing page at http://localhost:4000, dashboard at /app
 ```
 
+## Deploy
+
+The hub serves the website too, so one web service runs everything: landing page, dashboard, API and PayPal return pages. The repo includes a [Render](https://render.com) Blueprint (`render.yaml`).
+
+1. Render → **New → Blueprint** → pick this repo.
+2. Fill in the secrets it asks for:
+   - `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`: your PayPal sandbox app.
+   - `HUB_SIGNING_KEY`: output of `npm run signing-key`, so receipts keep verifying after a redeploy.
+   - `HUB_ADMIN_TOKEN` is generated for you. Find it under the service's **Environment** tab and use it to sign in at `/app`.
+3. Deploy. `HUB_URL` defaults to the service's public URL, which is also where PayPal sends buyers back after checkout.
+
+Create the demo agent and sellers on the deployed hub from your machine:
+
+```bash
+HUB_URL=https://your-service.onrender.com HUB_ADMIN_TOKEN=... npm run try setup --force
+```
+
+Notes:
+
+- With `NODE_ENV=production`, the hub refuses to start while `HUB_ADMIN_TOKEN` is `change-me`.
+- The free plan has no persistent disk, so the SQLite ledger resets on each deploy. For real use, attach a disk and set `DB_PATH` to a file on it.
+- Any host that runs Node 22.13+ works the same way: `npm ci --include=dev && npm run build`, then `npm start`.
+
 ## Use the wallet from Claude Desktop (MCP)
 
 `@tollgate/mcp` gives any MCP client two tools: `tollgate_fetch` (fetch a URL, paying if asked) and `tollgate_wallet`. Add this to Claude Desktop's config (Settings → Developer → Edit Config), with your own path to this repo:
